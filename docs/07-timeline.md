@@ -83,7 +83,9 @@ Sebuah fase belum selesai sampai butirnya terbukti, bukan terlihat jalan.
 
 Kalau pada **akhir H-3 (26 Sep)** presensi belum jalan end-to-end, potong dalam urutan ini:
 
-1. **Potong pertama:** animasi, dark mode, dashboard statistik & grafik (C1, S2, S5).
+1. **Potong pertama:** animasi (GSAP + Lenis), dark mode, dashboard statistik & grafik (C1, S2, S5).
+   Animasi dirancang agar bisa dicabut dalam hitungan menit — lihat
+   [`05-frontend-spec.md`](05-frontend-spec.md) §8.6.
 2. **Potong kedua:** landing page penuh → ganti satu halaman ringkas berisi informasi penting +
    kotak cari NIM. Informasi lengkap dibagikan lewat kanal panitia seperti tahun sebelumnya.
 3. **Potong ketiga:** cetak nametag massal (S3) → panitia mencetak dari ekspor Excel + template cetak surat.

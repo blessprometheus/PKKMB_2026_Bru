@@ -27,6 +27,7 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 |---|---|---|
 | Nasib v1 (`Desktop/pkkmb`) | **Ganti total** — v1 tidak dikembangkan lagi | User menerima risikonya secara sadar, lihat [`01-prd.md`](01-prd.md) §2 |
 | Frontend | Next.js (App Router) + TypeScript + Tailwind | |
+| Animasi | **GSAP + ScrollTrigger** dan **Lenis** (smooth scroll) | Disetujui user 22 Sep 2026. Hanya di halaman publik — dilarang di `/scan` & `/admin`. Lihat [`05-frontend-spec.md`](05-frontend-spec.md) §8 |
 | Backend | Laravel, API JSON | |
 | Database | PostgreSQL | |
 | Hosting | VPS sendiri, akses root SSH sudah ada | |
@@ -46,13 +47,13 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 0 — Dokumentasi & persiapan** ✅ selesai (22 September 2026)
-**Berikutnya: Fase 1 — Fondasi teknis (repo, VPS, skema DB)**
+**Fase saat ini: Fase 1 — Fondasi teknis** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: selesaikan setup VPS, lalu Fase 2 — Data & admin**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
 | 0 | Dokumentasi & persiapan | ✅ Selesai | `docs/` + `AGENTS.md` lengkap dan disetujui user |
-| 1 | Fondasi teknis | ⬜ Belum | Repo git jadi; Laravel + Next jalan lokal; PostgreSQL tersambung; migrasi tabel jalan; VPS terpasang Nginx/PHP/Node/Postgres |
+| 1 | Fondasi teknis | 🟡 Sebagian | Repo git jadi; Laravel + Next jalan lokal; PostgreSQL tersambung; migrasi tabel jalan; VPS terpasang Nginx/PHP/Node/Postgres |
 | 2 | Data & admin | ⬜ Belum | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
 | 3 | Lookup & unduhan maba | ⬜ Belum | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
 | 4 | Presensi | ⬜ Belum | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
@@ -61,6 +62,32 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 > **Fase 4 tidak boleh dianggap selesai** tanpa uji memakai **scanner gun yang sebenarnya**, bukan
 > simulasi ketik manual. Lihat [`07-timeline.md`](07-timeline.md) §4.
+
+### Catatan hasil Fase 1 (22 September 2026)
+
+**Sudah jalan dan diverifikasi langsung, bukan diasumsikan:**
+
+- Repo git dibuat, commit dokumentasi Fase 0 masuk.
+- Composer 2.10.3 dipasang dengan **verifikasi SHA-384** installer resminya.
+- Laravel **13.32.0** berjalan (`HTTP 200`), `sanctum/csrf-cookie` menjawab `HTTP 204`.
+- Next.js **16.3.5** + React 19.2.8 + Tailwind 4: `npm run build` **lolos**, TypeScript bersih.
+- PostgreSQL **17.10** tersambung dari Laravel (`artisan db:show` menampilkan database `pkkmb26`).
+- Database `pkkmb26` dengan owner `pkkmb26_app` — **bukan superuser**, sesuai
+  [`04-security.md`](04-security.md) §8.
+- **Seluruh 8 tabel** dari [`02-data-model.md`](02-data-model.md) termigrasi. Diperiksa langsung di
+  database: batasan `UNIQUE (student_id, attendance_session_id)`, semua `CHECK` (role, method, result,
+  gender), indeks GIN pencarian nama, dan kolom waktu bertipe `timestamptz`.
+- Model `Admin` menggantikan `User` bawaan. Diuji: kata sandi ter-hash bcrypt, tidak ikut ter-serialisasi
+  ke JSON, dan peran di luar daftar **ditolak database**.
+- Perintah `php artisan pkkmb:create-admin` terdaftar — akun dibuat interaktif, tanpa seeder berisi
+  kata sandi.
+- GSAP **3.15.0** + Lenis **1.3.26** terpasang (keputusan user 22 Sep 2026).
+
+**Belum dikerjakan:**
+
+- ⬜ **Setup VPS** (Nginx, PHP-FPM, Node, PostgreSQL, SSL) — butuh akses SSH ke server dari user.
+- ⬜ Provider animasi GSAP/Lenis belum ditulis; itu pekerjaan Fase 5 sesuai
+  [`07-timeline.md`](07-timeline.md). Dependensinya sudah siap.
 
 ---
 

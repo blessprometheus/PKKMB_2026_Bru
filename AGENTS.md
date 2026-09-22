@@ -51,6 +51,7 @@ Folder [`docs/`](docs/README.md) berisi seluruh keputusan proyek. **Baca yang re
 |---|---|---|
 | Frontend | **Next.js (App Router) + TypeScript** | SSR/SSG untuk landing (SEO), client component untuk dashboard & scan |
 | Styling | **Tailwind CSS** + token warna UNINUS | token ada di [`05-frontend-spec.md`](docs/05-frontend-spec.md) §2 |
+| Animasi | **GSAP** (+ ScrollTrigger) dan **Lenis** | disetujui user 22 Sep 2026. **Hanya untuk landing page publik.** Aturan lengkap di [`05-frontend-spec.md`](docs/05-frontend-spec.md) §9 |
 | Backend | **Laravel (PHP)** | API JSON saja, tidak me-render Blade untuk publik |
 | Database | **PostgreSQL** | bukan MySQL — perhatikan perbedaan tipe data dan `ILIKE` |
 | Auth admin | **Laravel Sanctum** | cookie session same-origin, lihat [`04-security.md`](docs/04-security.md) §1 |

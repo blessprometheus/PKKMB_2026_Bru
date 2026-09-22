@@ -23,7 +23,15 @@
 Landing (`/`) di-render di server agar SEO dan waktu muat di jaringan seluler baik.
 Dashboard dan `/scan` adalah client component — tidak perlu SEO, butuh interaktivitas.
 
-Rute `/admin/*` dan `/scan` dilindungi **middleware Next.js** (cek sesi) **dan** otorisasi di Laravel.
+Rute `/admin/*` dan `/scan` dilindungi **`proxy.ts` Next.js** (cek sesi) **dan** otorisasi di Laravel.
+
+> ⚠️ **Next.js 16: `middleware.ts` sudah diganti `proxy.ts`.** Nama berkas **dan** nama fungsi yang
+> diekspor keduanya `proxy`, dan runtime-nya hanya `nodejs` (tidak bisa `edge`). Diverifikasi dari
+> `node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`. Jangan menulis
+> `middleware.ts` dari kebiasaan lama.
+>
+> Di Next.js 16 `cookies()`, `headers()`, `params`, dan `searchParams` **wajib di-`await`** — akses
+> sinkron sudah dihapus sepenuhnya, bukan sekadar deprecated.
 Perlindungan di frontend hanya untuk pengalaman pengguna; yang mengamankan adalah backend
 ([`04-security.md`](04-security.md) §1).
 
@@ -242,10 +250,95 @@ bukan gagal diam-diam. Rencana cadangan kertas ada di [`07-timeline.md`](07-time
 
 ---
 
-## 8. Yang Sengaja Tidak Dipakai
+## 8. Animasi — GSAP + Lenis
+
+**Keputusan user, 22 September 2026.** GSAP (dengan ScrollTrigger) untuk animasi, Lenis untuk
+*smooth scroll*. Ini menambah dua dependensi di luar rencana awal; aturan di bawah mengikat.
+
+### 8.1 Batas pemakaian — keras
+
+| Halaman | Animasi? |
+|---|---|
+| `/`, `/cari` (publik) | ✅ Ya |
+| `/scan` | ❌ **Dilarang, tanpa kecuali** |
+| `/admin/*` | ❌ Dilarang |
+
+`/scan` dipakai sambil berdiri menghadapi antrean. *Smooth scroll* membajak gulir dan bisa merebut
+fokus dari kolom input — padahal seluruh halaman itu bergantung pada fokus yang tidak pernah lepas
+(§4.1). Di tabel admin, Lenis hanya membuat gulir terasa berat. Jangan dipasang di layout global;
+pasang di layout grup rute publik saja.
+
+### 8.2 `prefers-reduced-motion` — bukan opsional
+
+- Kalau pengguna meminta gerak dikurangi, **Lenis tidak diinisialisasi sama sekali** — bukan sekadar
+  durasi disetel 0. Gulir kembali ke perilaku asli browser.
+- GSAP langsung menetapkan keadaan akhir (`gsap.set`), elemen tampil tanpa transisi.
+- Alasannya medis, bukan selera: gulir yang dibajak memicu pusing pada pengguna dengan gangguan
+  vestibular. Halaman ini wajib tetap terpakai penuh tanpa animasi.
+
+### 8.3 Integrasi teknis yang wajib benar
+
+- Keduanya **client-only**: `'use client'`, dimuat lewat `dynamic(..., { ssr: false })` agar tidak
+  ikut render server dan tidak menunda HTML landing.
+- Lenis **harus** disambungkan ke ScrollTrigger, kalau tidak ScrollTrigger salah menghitung posisi:
+  `lenis.on('scroll', ScrollTrigger.update)` dan `gsap.ticker.add(t => lenis.raf(t * 1000))`,
+  dengan `gsap.ticker.lagSmoothing(0)`.
+- `html { scroll-behavior: smooth }` **wajib dimatikan** saat Lenis aktif — keduanya berebut kendali
+  gulir dan hasilnya tersendat. Di Next.js 16 framework **tidak lagi** menimpa `scroll-behavior` saat
+  navigasi, jadi konfliknya murni antara CSS dan Lenis. Jangan pula menambahkan
+  `data-scroll-behavior="smooth"` pada `<html>` — atribut itu justru **menghidupkan kembali** penimpaan
+  oleh Next.js dan akan bertabrakan dengan Lenis. (Diverifikasi dari `version-16.md` §Scroll Behavior
+  Override.)
+- Navigasi anchor (`#jadwal`, `#tata-tertib`) memakai `lenis.scrollTo()`, bukan lompatan bawaan browser.
+  Navbar yang berubah saat gulir dihitung dari event Lenis, bukan event `scroll` bawaan.
+- Bersihkan saat unmount: `lenis.destroy()` dan matikan seluruh ScrollTrigger. App Router me-mount
+  ulang komponen saat berpindah rute; tanpa pembersihan, instansinya menumpuk.
+
+### 8.4 Anggaran performa
+
+Landing menargetkan LCP < 2,5 detik di 4G pada HP Android kelas bawah ([`01-prd.md`](01-prd.md) §7).
+
+- Impor **hanya modul yang dipakai** (`gsap`, `gsap/ScrollTrigger`), bukan seluruh paket plugin.
+- Animasi **tidak boleh menunda LCP**. Hero tampil lebih dulu dalam keadaan terbaca; animasi masuk
+  menyusul setelah hidrasi.
+- Hanya menganimasikan `transform` dan `opacity`. **Dilarang** menganimasikan `width`, `height`,
+  `top`, `left`, atau `margin` — itu memicu perhitungan ulang tata letak di tiap frame.
+- Kalau berat halaman awal melewati anggaran, **yang dipotong adalah animasinya**, bukan anggarannya.
+
+### 8.5 Lisensi
+
+Diverifikasi dari paket yang benar-benar terpasang pada 22 September 2026:
+
+| Paket | Versi | Lisensi (dari `package.json`/`README.md` paket) |
+|---|---|---|
+| `gsap` | 3.15.0 | GreenSock standard "no charge" license — `https://gsap.com/standard-license` |
+| `lenis` | 1.3.26 | MIT |
+
+Paket `gsap` publik **sudah menyertakan** `ScrollTrigger.js`, `ScrollSmoother.js`, dan `SplitText.js`
+(diperiksa langsung di `node_modules/gsap/`), jadi tidak perlu registry berbayar terpisah.
+
+> `TODO:` isi teks lisensi GreenSock **belum dibaca** — yang diverifikasi baru rujukan URL-nya di paket.
+> Sebelum go-live, buka `https://gsap.com/standard-license` dan pastikan pemakaian di situs resmi
+> universitas (tidak menjual akses ke fitur animasinya) tercakup. Catat hasilnya di sini.
+>
+> **Keputusan yang sudah diambil:** kita memakai `ScrollTrigger` saja. `ScrollSmoother` **tidak dipakai**
+> karena tumpang tindih dengan Lenis — dua mesin *smooth scroll* sekaligus akan saling berebut.
+
+### 8.6 Harus bisa dicabut dalam hitungan menit
+
+[`07-timeline.md`](07-timeline.md) §5 menempatkan animasi sebagai **hal pertama yang dipotong** kalau
+presensi belum siap. Karena itu seluruh kode animasi hidup di **satu provider + satu berkas util**,
+tidak disebar ke banyak komponen. Mencabutnya = melepas provider dan menghapus dua dependensi,
+tanpa menyentuh markup section mana pun.
+
+---
+
+## 9. Yang Sengaja Tidak Dipakai
 
 - ❌ Pemindaian via kamera browser (scanner gun sudah tersedia; kamera jadi cadangan **hanya** bila
   user memintanya kemudian).
 - ❌ State manager eksternal (Redux/Zustand) — cakupan state tidak membutuhkannya.
 - ❌ UI kit selain Tailwind + komponen sendiri.
+- ❌ Library animasi lain selain GSAP + Lenis (anime.js, AOS, Framer Motion). Mencampur dua mesin
+  animasi membuat perilaku `prefers-reduced-motion` dan anggaran performa mustahil dijaga.
 - ❌ `dangerouslySetInnerHTML` untuk data dari database.

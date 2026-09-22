@@ -25,17 +25,36 @@
 > ⚠️ **Isi versi persisnya setelah instalasi nyata.** Jangan menulis versi dari ingatan —
 > lihat [`../AGENTS.md`](../AGENTS.md) §4.
 
-| Komponen | Versi terpasang | Catatan |
-|---|---|---|
-| OS | `TODO:` | Ubuntu LTS disarankan |
-| Nginx | `TODO:` | reverse proxy + penyaji statis |
-| PHP-FPM | `TODO:` | ekstensi wajib: `pdo_pgsql`, `mbstring`, `gd` (QR), `zip` (Excel), `intl` |
-| Composer | `TODO:` | |
-| Laravel | `TODO:` | catat setelah `composer create-project` |
-| Node.js | `TODO:` | versi LTS |
-| Next.js | `TODO:` | catat setelah `create-next-app` |
-| PostgreSQL | `TODO:` | |
-| PM2 | `TODO:` | menjaga proses Next tetap hidup |
+**Versi di mesin pengembangan (diverifikasi 22 September 2026):**
+
+| Komponen | Versi dev | Versi server | Catatan |
+|---|---|---|---|
+| OS | Windows 10 Pro | `TODO:` | server: Ubuntu LTS disarankan |
+| Nginx | — | `TODO:` | reverse proxy + penyaji statis |
+| PHP | **8.3.32** | `TODO:` | ekstensi `pdo_pgsql`, `pgsql`, `mbstring`, `gd`, `zip`, `intl`, `fileinfo` — semua aktif di dev |
+| Composer | **2.10.3** | `TODO:` | dipasang dengan verifikasi SHA-384 installer |
+| Laravel | **13.32.0** | idem | `laravel/framework ^13.17` |
+| Laravel Sanctum | terpasang via `artisan install:api` | idem | auth cookie SPA same-origin |
+| Node.js | **24.18.0** | `TODO:` | server: pakai versi LTS |
+| npm | **11.16.0** | `TODO:` | |
+| Next.js | **16.3.5** | idem | ⚠️ lihat catatan breaking change di bawah |
+| React | **19.2.8** | idem | |
+| Tailwind CSS | **4.x** | idem | |
+| TypeScript | **5.x** | idem | |
+| GSAP | **3.15.0** | idem | ScrollTrigger sudah termasuk di paket publik |
+| Lenis | **1.3.26** | idem | MIT |
+| PostgreSQL | **17.10** | `TODO:` | dev: service `postgresql-x64-17` |
+| PM2 | — | `TODO:` | menjaga proses Next tetap hidup |
+
+> ⚠️ **Next.js 16 punya breaking change yang relevan langsung:** `middleware.ts` → `proxy.ts`
+> (nama berkas dan nama fungsi), dan `cookies()`/`headers()`/`params`/`searchParams` wajib di-`await`.
+> Diverifikasi dari `frontend/node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`.
+> Dokumen bawaan itu adalah acuan, bukan ingatan — lihat [`../AGENTS.md`](../AGENTS.md) §4.
+
+> ⚠️ **Catatan keamanan mesin dev:** `pg_hba.conf` di mesin ini memakai `trust` untuk koneksi
+> `127.0.0.1`, sehingga proses lokal mana pun bisa masuk sebagai superuser PostgreSQL.
+> Itu **tidak boleh** ditiru di server — di VPS gunakan `scram-sha-256` dan user aplikasi
+> non-superuser (§5 langkah 2).
 
 Paket PHP yang direncanakan (**verifikasi nama & kompatibilitas versi saat instalasi**):
 pembuat QR, pembaca/penulis Excel, dan pembuat PDF. Jangan menambah paket di luar kebutuhan itu tanpa
