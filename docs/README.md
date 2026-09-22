@@ -51,8 +51,8 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 4 — Presensi** 🟡 sebagian selesai (22 September 2026)
-**Berikutnya: Fase 5 — Landing page**
+**Fase saat ini: Fase 5 — Landing page** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: Fase 6 — Hardening & go-live**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
@@ -61,7 +61,7 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 | 2 | Data & admin | 🟡 Sebagian | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
 | 3 | Lookup & unduhan maba | 🟡 Sebagian | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
 | 4 | Presensi | 🟡 Sebagian | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
-| 5 | Landing page | ⬜ Belum | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
+| 5 | Landing page | 🟡 Sebagian | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
 | 6 | Hardening & go-live | ⬜ Belum | `security-review` + `ship-gate` lolos; uji end-to-end dengan 3 scanner; backup & rencana cadangan siap; deploy produksi |
 
 > **Fase 4 tidak boleh dianggap selesai** tanpa uji memakai **scanner gun yang sebenarnya**, bukan
@@ -255,6 +255,57 @@ untuk mahasiswa ketiga yang sengaja belum dipindai.
 - ⬜ Antrean offline / ketahanan saat koneksi putus (S4).
 - ⬜ Cetak daftar hadir kertas cadangan (bagian dari runbook H-1, bukan kode).
 - ⬜ Endpoint kelola akun panitia (masih lewat `php artisan pkkmb:create-admin`).
+
+### Catatan hasil Fase 5 (22 September 2026)
+
+**Landing page satu halaman jalan** di `/`, memakai seluruh fakta yang sudah terverifikasi dari
+[`../bahan/README.md`](../bahan/README.md) §4 — tanpa satu pun data karangan.
+
+- **Delapan section**: Hero (dengan hitung mundur ke registrasi), Informasi, Jadwal, Cari Data
+  (embed komponen Fase 3), Tata Tertib, Video, FAQ, Kontak. Empat yang datanya belum diterima
+  (Informasi, Tata Tertib, Video, Kontak — D9–D11) memakai `<TodoSection>`: kotak putus-putus
+  bertuliskan apa yang masih ditunggu, **bukan konten karangan dan bukan disembunyikan**.
+- **Jadwal** menampilkan tiga segmen publik dari dokumen panitia (registrasi 06:30–07:15, masuk
+  ruang sidang, sidang terbuka 08:00–09:37). **Sengaja tidak memuat** koreografi lighting/audio/nama
+  petugas dari dokumen aslinya — itu bertanda **CONFIDENTIAL** dan bukan konsumsi publik
+  ([`../bahan/README.md`](../bahan/README.md) §2).
+- **SEO**: `metadataBase`, OG/Twitter tags, dan **JSON-LD `schema.org/Event`** dengan `startDate`/
+  `endDate`/lokasi yang seluruhnya diambil dari `src/lib/content.ts` — satu sumber kebenaran teks,
+  bukan ditulis berulang di markup.
+- **GSAP 3.15 + Lenis 1.3.26 akhirnya terpasang** (dependensinya sudah ada sejak Fase 1). Satu
+  provider (`components/animation/LenisProvider.tsx`) + dua komponen pendukung (`Reveal.tsx`,
+  `AnchorLink.tsx`) — sesuai janji §8.6: mencabut animasi = hapus folder itu, tanpa menyentuh
+  section mana pun.
+- Diverifikasi dari sumber: opsi bawaan Lenis 1.3.26 `respectReducedMotion` **tidak** mematikan
+  pembajakan wheel/touch, hanya memengaruhi `scrollTo()` terprogram — jadi pengecekan
+  `prefers-reduced-motion` manual di `LenisProvider` tetap wajib, sesuai yang sudah dirancang di
+  [`05-frontend-spec.md`](05-frontend-spec.md) §8.2.
+
+**Diuji dengan Playwright di browser sungguhan (headless Chromium), viewport 390px — bukan hanya
+dibaca dari HTML statis:**
+
+| Diperiksa | Gerak diizinkan | `prefers-reduced-motion: reduce` |
+|---|---|---|
+| Kelas `lenis` di `<html>` | ✅ ada | ✅ **tidak ada** — Lenis tidak diinisialisasi sama sekali |
+| Hitung mundur terisi | ✅ `06 Hari 12 Jam …` | ✅ tetap terisi (bukan animasi, tak terpengaruh) |
+| Opacity section FAQ sebelum digulir | `0` (tersembunyi, menunggu animasi) | `1` (**langsung tampil**, tanpa animasi) |
+| Opacity setelah digulir ke section | `1` | `1` |
+| Klik tautan navbar → gulir ke bagian | ✅ lewat `lenis.scrollTo()` | ✅ jatuh ke anchor bawaan browser |
+| Accordion FAQ (`aria-expanded`) | ✅ berfungsi | ✅ berfungsi |
+| Galat konsol/halaman | **nihil** | **nihil** |
+
+Hasil ini membuktikan perilaku yang dirancang di [`05-frontend-spec.md`](05-frontend-spec.md) §8.2
+benar-benar terjadi, bukan sekadar tertulis di kode: pengguna dengan gangguan vestibular melihat
+halaman utuh tanpa gerak sama sekali, bukan konten yang macet dalam keadaan tersembunyi.
+
+**Belum dikerjakan di Fase 5:**
+
+- ⬜ Naskah Informasi PKKMB, Tata Tertib + PDF, tautan video, kontak panitia — menunggu D9–D11.
+- ⬜ Banner OG resmi 1200×630 — sementara memakai logo PKKMB (200×200), ditandai `TODO:` di kode.
+- ⬜ Domain produksi (D12) — `metadataBase` sementara `localhost:3000` lewat env, tinggal diisi
+  `NEXT_PUBLIC_SITE_URL` saat domain final.
+- ⬜ Uji Lighthouse (skor performa/aksesibilitas belum diukur formal) dan uji perangkat fisik.
+- ⬜ Dark mode (S5) — dikorbankan sesuai batas potong scope, belum ada tanda presensi terlambat.
 
 ---
 

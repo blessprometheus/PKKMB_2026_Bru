@@ -13,7 +13,13 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PKKMB UNINUS 2026",
+  // TODO: [D12] domain produksi belum final — docs/06-deployment.md merancang
+  // pkkmb.uninus.ac.id. Setel NEXT_PUBLIC_SITE_URL di .env begitu domain pasti.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: {
+    default: "PKKMB UNINUS 2026",
+    template: "%s — PKKMB UNINUS 2026",
+  },
   description:
     "Informasi resmi Pengenalan Kehidupan Kampus bagi Mahasiswa Baru Universitas Islam Nusantara 2026.",
 };
