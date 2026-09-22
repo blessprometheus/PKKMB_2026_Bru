@@ -1,0 +1,43 @@
+# === Rahasia & konfigurasi ===
+.env
+.env.*
+!.env.example
+
+# === Data pribadi mahasiswa — JANGAN PERNAH di-commit ===
+# Lihat docs/04-security.md §10
+*.xlsx
+*.xls
+*.csv
+*.sql
+*.dump
+backend/storage/app/imports/
+backend/storage/app/private/
+public/uploads/
+
+# === Dependensi & build ===
+node_modules/
+vendor/
+.next/
+out/
+build/
+dist/
+
+# === Laravel ===
+backend/storage/*.key
+backend/storage/logs/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/
+
+# === Artefak yang tidak berhubungan dengan proyek ===
+opencode/
+opencode.zip
+
+# === Editor & OS ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
