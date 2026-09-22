@@ -1,0 +1,16 @@
+# Contoh crontab untuk backup PostgreSQL. Lihat docs/06-deployment.md §6.
+#
+# CARA PAKAI: sesuaikan path, lalu `crontab -e` sebagai user yang punya akses
+# baca ke ~/.pgpass (biasanya root atau user aplikasi khusus).
+#
+# Backup harian penuh, jam 02:00 WIB — di luar jam kerja, database sepi.
+0 2 * * * /opt/pkkmb26/backup-db.sh >> /var/log/pkkmb26/backup.log 2>&1
+
+# Backup cepat khusus kehadiran, setiap 15 menit — HANYA AKTIFKAN PADA HARI-H.
+# Baris ini sengaja dikomentari; aktifkan H-1, matikan lagi H+1 supaya tidak
+# menumpuk backup kecil yang tidak perlu di hari biasa.
+# */15 * * * * /opt/pkkmb26/backup-attendance.sh >> /var/log/pkkmb26/backup.log 2>&1
+
+# Pembaruan sertifikat SSL — certbot biasanya sudah mendaftarkan ini sendiri
+# saat instalasi (systemd timer), baris ini cadangan bila dipasang manual.
+# 0 3 * * * certbot renew --quiet --deploy-hook "systemctl reload nginx"

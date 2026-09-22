@@ -287,6 +287,25 @@ class ScanTest extends TestCase
         $this->assertSame(0, Attendance::count());
     }
 
+    /**
+     * Test regresi — ditemukan lewat pengujian keamanan nyata di Fase 6.
+     * `postJson()` selalu mengirim `Accept: application/json`; helper `post()`
+     * polos di bawah TIDAK, meniru klien dunia nyata (curl polos, scanner gun
+     * yang memakai skrip HTTP sederhana, alat uji pihak ketiga). Lihat catatan
+     * lengkap di AuthTest::test_endpoint_admin_menolak_tamu_tanpa_header_accept.
+     */
+    public function test_pemindaian_tanpa_login_ditolak_meski_tanpa_header_accept(): void
+    {
+        $student = Student::factory()->create();
+
+        $this->post('/api/v1/scan', [
+            'token' => $student->attendance_token,
+            'attendance_session_id' => $this->sesi->id,
+        ])->assertStatus(401)->assertJson(['success' => false]);
+
+        $this->assertSame(0, Attendance::count());
+    }
+
     /** Operator boleh memindai, tapi tetap tidak boleh membuka data mahasiswa. */
     public function test_operator_boleh_memindai_tapi_tidak_boleh_melihat_rekap(): void
     {

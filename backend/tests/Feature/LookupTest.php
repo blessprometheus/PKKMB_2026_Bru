@@ -91,6 +91,46 @@ class LookupTest extends TestCase
     }
 
     /**
+     * Batas per-menit dan per-jam WAJIB independen — bukan berbagi kunci
+     * cache yang sama. Laravel 13 punya perlindungan bawaan untuk footgun ini
+     * (`RateLimiter::for()` mendeteksi kunci `by()` yang bentrok antar-Limit
+     * lalu mengganti otomatis ke `Limit::fallbackKey()`, yang menyertakan
+     * maxAttempts & decay). Test ini membuktikan efeknya benar-benar terjadi
+     * di jalur nyata, bukan sekadar mempercayai perilaku framework.
+     *
+     * Strategi: penuhi batas 10/menit empat kali berturut-turut sambil
+     * melompati waktu 61 detik di antaranya (supaya jendela per-menit selalu
+     * segar), sehingga total 40 permintaan berhasil — persis batas per-jam.
+     * Permintaan ke-41, meski jendela per-menitnya juga baru, harus tetap
+     * ditolak karena akumulasi per-jam sudah tercapai.
+     */
+    public function test_batas_per_menit_dan_per_jam_independen(): void
+    {
+        $this->buatMahasiswa();
+
+        for ($jendela = 0; $jendela < 4; $jendela++) {
+            for ($i = 0; $i < 10; $i++) {
+                $response = $this->postJson('/api/v1/lookup', ['nim' => '20260012345']);
+
+                $this->assertSame(
+                    200,
+                    $response->getStatusCode(),
+                    "Gagal pada jendela {$jendela}, permintaan ke-{$i} — seharusnya batas per-jam (40) belum tercapai.",
+                );
+            }
+
+            $this->travel(61)->seconds(); // jendela per-menit reset, akumulasi per-jam TIDAK reset
+        }
+
+        // Total 40 permintaan sukses. Jendela per-menit baru saja reset lagi,
+        // jadi kalau limiternya salah (berbagi kunci / hanya menghitung
+        // per-menit), permintaan ini akan LOLOS. Yang benar: DITOLAK.
+        $this->postJson('/api/v1/lookup', ['nim' => '20260012345'])
+            ->assertStatus(429)
+            ->assertJson(['success' => false]);
+    }
+
+    /**
      * Tabel pemantauan tidak boleh berubah menjadi salinan daftar NIM yang
      * justru bocor lewat pintu lain.
      */

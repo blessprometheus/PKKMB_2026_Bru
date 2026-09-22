@@ -51,8 +51,8 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 5 — Landing page** 🟡 sebagian selesai (22 September 2026)
-**Berikutnya: Fase 6 — Hardening & go-live**
+**Fase saat ini: Fase 6 — Hardening & go-live** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: akses VPS dari user, lalu deploy sungguhan**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
@@ -62,7 +62,7 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 | 3 | Lookup & unduhan maba | 🟡 Sebagian | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
 | 4 | Presensi | 🟡 Sebagian | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
 | 5 | Landing page | 🟡 Sebagian | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
-| 6 | Hardening & go-live | ⬜ Belum | `security-review` + `ship-gate` lolos; uji end-to-end dengan 3 scanner; backup & rencana cadangan siap; deploy produksi |
+| 6 | Hardening & go-live | 🟡 Sebagian | `security-review` + `ship-gate` lolos; uji end-to-end dengan 3 scanner; backup & rencana cadangan siap; deploy produksi |
 
 > **Fase 4 tidak boleh dianggap selesai** tanpa uji memakai **scanner gun yang sebenarnya**, bukan
 > simulasi ketik manual. Lihat [`07-timeline.md`](07-timeline.md) §4.
@@ -306,6 +306,63 @@ halaman utuh tanpa gerak sama sekali, bukan konten yang macet dalam keadaan ters
   `NEXT_PUBLIC_SITE_URL` saat domain final.
 - ⬜ Uji Lighthouse (skor performa/aksesibilitas belum diukur formal) dan uji perangkat fisik.
 - ⬜ Dark mode (S5) — dikorbankan sesuai batas potong scope, belum ada tanda presensi terlambat.
+
+### Catatan hasil Fase 6 (22 September 2026)
+
+**Belum bisa dianggap selesai — deploy sungguhan butuh akses SSH ke VPS yang belum diberikan.**
+Yang dikerjakan adalah semua yang BISA diverifikasi tanpa server, secara jujur mendekati batasnya,
+bukan menebak lalu berhenti. Rincian lengkap di [`../deploy/README.md`](../deploy/README.md).
+
+**Ditemukan lewat audit — satu bug otentikasi nyata, sekarang diperbaiki dan dikunci test:**
+
+Permintaan ke endpoint yang butuh login (`/scan`, `/admin/*`) **tanpa header
+`Accept: application/json`** (curl polos, Postman default, klien pihak ketiga apa pun) berakhir
+**500 mentah** `"Route [login] not defined."`, melewati seluruh format error kustom. Sebabnya:
+Laravel 13 SELALU mendaftarkan `redirectGuestsTo(fn () => route('login'))` secara default, dan API
+ini tidak punya rute Blade bernama `login`. Diperbaiki satu baris di `bootstrap/app.php`
+(`redirectGuestsTo(fn () => null)`), dibuktikan dengan permintaan nyata, dan dikunci 2 test regresi
+baru yang sengaja tidak memakai `getJson()`/`postJson()` (keduanya otomatis mengirim header itu,
+sehingga 63 test sebelumnya tidak pernah bisa menemukan bug ini). **Total test sekarang 68, 304
+assertion, seluruhnya lolos.**
+
+Ditemukan bukan dengan menebak, tapi dengan menjalankan `deploy/scripts/verify-security.sh`
+sungguhan terhadap server dev lokal — skrip yang sama juga dipakai nanti terhadap server produksi.
+
+**Dua bug lagi ditemukan saat menulis (bukan menjalankan) `deploy/nginx/pkkmb26.conf`:**
+`Connection: upgrade` yang di-hardcode untuk semua permintaan (seharusnya hanya untuk WebSocket,
+yang tidak kita pakai — merusak *connection pooling*), dan `proxy_cache_valid` tanpa zona
+`proxy_cache` aktif (directive tanpa efek). Keduanya diperbaiki sebelum sempat dipakai.
+
+**Siap pakai, sudah divalidasi sebatas mungkin tanpa VPS:**
+
+- `.env.example` (backend & frontend) ditulis ulang total — sebelumnya masih bawaan scaffold
+  Laravel (`APP_DEBUG=true`, SQLite) yang berbahaya kalau dipakai sebagai dasar deploy.
+- `deploy/nginx/pkkmb26.conf` — sintaks **divalidasi dengan `crossplane`** (pengurai Nginx resmi,
+  Python) di dalam konteks `http{}` tiruan; struktur `location` bersarang terbukti benar.
+  `nginx -t` sungguhan **belum** dijalankan (WSL tersedia tapi `sudo` butuh kata sandi interaktif).
+- `deploy/scripts/deploy.sh`, `verify-security.sh`, `backup/*.sh` — `bash -n` lolos;
+  `verify-security.sh` sudah **dijalankan sungguhan** (lihat temuan di atas).
+- `deploy/pm2/ecosystem.config.js` — `node -c` lolos.
+- Audit dependensi: `composer audit` dan `npm audit` — **nihil kerentanan CVE** di kedua sisi.
+- Verifikasi git history: `.env` **tidak pernah** masuk commit; tidak ada kata sandi polos di
+  history manapun.
+- Dua celah checklist yang belum teruji ditemukan dan ditutup: batas **40/jam** pada lookup
+  (sebelumnya hanya 10/menit yang diuji — dibuktikan independen dari batas per-menit lewat
+  simulasi 4 jendela waktu dengan `travel()`), dan **ukuran berkas impor melebihi 10 MB** (sekarang
+  diuji, termasuk batas tepatnya tidak off-by-one).
+- Log aplikasi diperiksa manual — tidak ada NIM/nama yang tercatat.
+
+**Blocker nyata untuk menyelesaikan Fase 6** (lihat tabel lengkap di
+[`../deploy/README.md`](../deploy/README.md)):
+
+1. **Kredensial SSH ke VPS** dari Anda — tanpa ini tidak ada satu pun langkah deploy sungguhan.
+2. `nginx -t` di lingkungan Linux nyata.
+3. Versi & path socket PHP-FPM sesungguhnya di server (`pkkmb26.conf` masih menebak `php8.3-fpm.sock`).
+4. Domain final (D12).
+5. `verify-security.sh` terhadap domain HTTPS sungguhan — 5 pemeriksaan yang gagal di dev lokal
+   (HSTS, header keamanan) **harus** lolos di server nyata.
+6. Backup dipulihkan sekali secara manual (checklist butir 16 — tidak bisa diotomasi).
+7. `nmap` port 5432 dari komputer lain (checklist butir 14).
 
 ---
 

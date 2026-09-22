@@ -167,6 +167,31 @@ class AuthTest extends TestCase
     }
 
     /**
+     * Test regresi untuk bug yang ditemukan saat menyusun Fase 6.
+     *
+     * `getJson()`/`postJson()` SELALU menyertakan header `Accept: application/
+     * json` secara otomatis — jadi tidak pernah bisa menangkap bug ini.
+     * Test di atas memakai helper polos `get()` yang TIDAK menambahkan header
+     * itu, meniru klien nyata yang tidak mengirimnya (curl polos, Postman
+     * default, atau skrip pihak ketiga mana pun).
+     *
+     * Root cause: `ApplicationBuilder::withMiddleware()` Laravel SELALU
+     * mendaftarkan `redirectGuestsTo(fn () => route('login'))` sebelum
+     * `bootstrap/app.php` sempat menimpanya. Karena API ini tidak punya rute
+     * bernama `login`, `Authenticate::unauthenticated()` melempar
+     * RouteNotFoundException saat `expectsJson()` bernilai false — bocor
+     * sebagai 500 mentah, melewati seluruh penanganan error kustom.
+     * Diperbaiki dengan `$middleware->redirectGuestsTo(fn () => null)` di
+     * bootstrap/app.php.
+     */
+    public function test_endpoint_admin_menolak_tamu_tanpa_header_accept(): void
+    {
+        $this->get('/api/v1/admin/students')
+            ->assertStatus(401)
+            ->assertJson(['success' => false]);
+    }
+
+    /**
      * Inti pembatasan peran: operator harus mendapat 403, bukan sekadar tidak
      * melihat menunya di frontend (docs/04-security.md checklist §11 butir 9).
      */

@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# .env.example TIDAK berisi rahasia -- ini template yang memang harus
+# di-commit (lihat backend/.gitignore dan root .gitignore untuk pola yang sama).
+!.env.example
 
 # vercel
 .vercel

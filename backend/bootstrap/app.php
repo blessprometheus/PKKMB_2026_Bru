@@ -35,6 +35,29 @@ return Application::configure(basePath: dirname(__DIR__))
         // pengunjung sebagai satu IP (IP proxy) dan perlindungan di
         // docs/04-security.md §2 menjadi tidak berguna.
         $middleware->trustProxies(at: explode(',', (string) env('TRUSTED_PROXIES', '127.0.0.1')));
+
+        /*
+         * WAJIB: Laravel SELALU mendaftarkan default
+         * `redirectGuestsTo(fn () => route('login'))` di dalam
+         * ApplicationBuilder::withMiddleware() — sebelum callback ini
+         * dijalankan sama sekali, dan tidak bisa dimatikan selain menimpanya
+         * di sini. API ini murni JSON, tidak punya rute Blade bernama
+         * `login`.
+         *
+         * DITEMUKAN LEWAT UJI NYATA (bukan dugaan): permintaan ke endpoint
+         * `auth:sanctum` TANPA header `Accept: application/json` (curl polos,
+         * Postman default, atau klien pihak ketiga mana pun yang tidak
+         * mengirim Accept) membuat `Authenticate::unauthenticated()`
+         * mengevaluasi `route('login')` LEBIH DULU — itu melempar
+         * RouteNotFoundException SEBELUM AuthenticationException sempat
+         * dibuat, sehingga lolos dari seluruh penanganan error kustom di
+         * bawah dan bocor jadi 500 mentah "Route [login] not defined."
+         * alih-alih 401 bersih. Frontend kita sendiri selalu mengirim Accept
+         * (lihat frontend/src/lib/api.ts) sehingga tidak pernah terpicu dari
+         * sana — tapi setiap klien lain (termasuk skrip uji keamanan sendiri)
+         * akan menabraknya.
+         */
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

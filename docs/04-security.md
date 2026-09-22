@@ -253,22 +253,26 @@ public/uploads/
 Semua harus ✅ sebelum sistem dipakai untuk data asli. Jalankan `security-review` lalu
 `anthropic-skills:ship-gate`.
 
-| # | Butir | ✅ |
-|---|---|---|
-| 1 | `APP_DEBUG=false`, `APP_ENV=production` | ⬜ |
-| 2 | `.env` tidak ada di git history; tidak ada kata sandi polos di repo | ⬜ |
-| 3 | Akun admin pertama dibuat lewat artisan di server, kata sandi kuat, bukan dari seeder | ⬜ |
-| 4 | HTTPS aktif, HTTP dialihkan 301, HSTS terpasang | ⬜ |
-| 5 | Rate limit lookup **diuji** (kirim 15 permintaan → dapat 429) | ⬜ |
-| 6 | Response lookup **diperiksa manual** — tidak ada `phone`, `email`, `birth_date`, `attendance_token` | ⬜ |
-| 7 | URL unduhan diuji: tanda tangan dibuang/diubah → 403; ditunggu 16 menit → 403 | ⬜ |
-| 8 | Endpoint `/scan` menolak permintaan tanpa login (uji dengan `curl` polos) | ⬜ |
-| 9 | Akun `operator` diuji **tidak bisa** membuka daftar mahasiswa & impor (403, bukan sekadar tersembunyi) | ⬜ |
-| 10 | Duplikat scan diuji: pindai orang yang sama dua kali → `duplicate`, bukan dua baris | ⬜ |
-| 11 | Scan di luar jendela waktu sesi → ditolak | ⬜ |
-| 12 | Ekspor Excel diuji dengan nama berisi `=cmd` → tidak menjadi formula | ⬜ |
-| 13 | Upload diuji: file `.php` disamarkan `.xlsx` → ditolak; file 20 MB → ditolak | ⬜ |
-| 14 | PostgreSQL tidak bisa diakses dari luar server (`nmap`/`psql` dari luar gagal) | ⬜ |
-| 15 | Header keamanan terpasang (cek di browser devtools) | ⬜ |
-| 16 | Backup database otomatis jalan, dan **hasilnya sudah pernah dipulihkan sekali** untuk dibuktikan | ⬜ |
-| 17 | Log aplikasi diperiksa — tidak ada NIM/nama di dalamnya | ⬜ |
+> **Status per 22 September 2026:** ✅ = diuji/diverifikasi (otomatis atau manual). 🟡 = siap
+> tapi belum diterapkan/diuji di server sungguhan. ⬜ = butuh akses VPS untuk bisa dikerjakan
+> sama sekali. Rincian lengkap ada di [`../deploy/README.md`](../deploy/README.md).
+
+| # | Butir | Status | Keterangan |
+|---|---|---|---|
+| 1 | `APP_DEBUG=false`, `APP_ENV=production` | 🟡 | `.env.example` sudah production-safe; belum diterapkan di server sungguhan — butuh akses VPS |
+| 2 | `.env` tidak ada di git history; tidak ada kata sandi polos di repo | ✅ | Diperiksa `git log --all -p` — nihil |
+| 3 | Akun admin pertama dibuat lewat artisan di server, kata sandi kuat, bukan dari seeder | 🟡 | Perintah `pkkmb:create-admin` ada & teruji (Fase 1); belum dijalankan "di server" sungguhan |
+| 4 | HTTPS aktif, HTTP dialihkan 301, HSTS terpasang | ⬜ | `deploy/nginx/pkkmb26.conf` sudah menyiapkan ini; butuh domain + VPS untuk certbot |
+| 5 | Rate limit lookup **diuji** (kirim 15 permintaan → dapat 429) | ✅ | Diuji otomatis (10/menit) **dan** independensi batas 40/jam (test baru Fase 6, simulasi 4 jendela lewat `travel()`) |
+| 6 | Response lookup **diperiksa manual** — tidak ada `phone`, `email`, `birth_date`, `attendance_token` | 🟡 | Diuji otomatis terhadap data uji (Fase 3); pemeriksaan manual dengan **NIM mahasiswa asli** tetap wajib sekali di server sebelum go-live |
+| 7 | URL unduhan diuji: tanda tangan dibuang/diubah → 403; ditunggu 16 menit → 403 | ✅ | Termasuk uji menukar id mahasiswa di URL → 403 (Fase 3) |
+| 8 | Endpoint `/scan` menolak permintaan tanpa login (uji dengan `curl` polos) | ✅ | **Butir ini yang menemukan bug nyata di Fase 6** — lihat `deploy/README.md`. `curl` tanpa header `Accept` sempat mendapat 500 mentah, sekarang 401 bersih & dikunci test regresi |
+| 9 | Akun `operator` diuji **tidak bisa** membuka daftar mahasiswa & impor (403, bukan sekadar tersembunyi) | ✅ | Fase 2 |
+| 10 | Duplikat scan diuji: pindai orang yang sama dua kali → `duplicate`, bukan dua baris | ✅ | Termasuk 10 tembakan beruntun (Fase 4) |
+| 11 | Scan di luar jendela waktu sesi → ditolak | ✅ | Fase 4, termasuk regresi bug zona waktu |
+| 12 | Ekspor Excel diuji dengan nama berisi `=cmd` → tidak menjadi formula | ✅ | `=cmd\|calc`, `+1+1`, `-SUM()` diperiksa langsung di berkas `.xlsx` hasil ekspor (Fase 4) |
+| 13 | Upload diuji: file `.php` disamarkan `.xlsx` → ditolak; file 20 MB → ditolak | ✅ | Disamarkan `.xlsx` sejak Fase 2; ukuran berlebih + batas tepat 10 MB ditambahkan Fase 6 |
+| 14 | PostgreSQL tidak bisa diakses dari luar server (`nmap`/`psql` dari luar gagal) | ⬜ | Butuh VPS + `nmap` dari komputer lain — lihat `deploy/scripts/verify-security.sh` |
+| 15 | Header keamanan terpasang (cek di browser devtools) | 🟡 | Konfigurasi siap di `deploy/nginx/pkkmb26.conf` (sintaks tervalidasi `crossplane`), belum aktif di server sungguhan |
+| 16 | Backup database otomatis jalan, dan **hasilnya sudah pernah dipulihkan sekali** untuk dibuktikan | ⬜ | Skrip siap (`deploy/backup/`), belum pernah dijalankan+dipulihkan sungguhan |
+| 17 | Log aplikasi diperiksa — tidak ada NIM/nama di dalamnya | ✅ | Diperiksa manual terhadap `storage/logs/laravel.log` (Fase 6) |

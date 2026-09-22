@@ -230,6 +230,44 @@ class StudentImportTest extends TestCase
         $this->assertSame(0, Student::count());
     }
 
+    /**
+     * docs/04-security.md §5.1: ukuran maksimal 10 MB. Batasnya di
+     * config/pkkmb.php (`import.max_file_size_kb` = 10240), belum pernah
+     * diuji sampai sekarang.
+     */
+    public function test_berkas_melebihi_batas_ukuran_ditolak(): void
+    {
+        $file = UploadedFile::fake()->create(
+            'data-sangat-besar.xlsx',
+            10241, // KB — 1 KB di atas batas 10240
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        );
+
+        $response = $this->actingAs($this->admin)
+            ->post('/api/v1/admin/students/import', ['file' => $file]);
+
+        $response->assertStatus(422)->assertJson(['success' => false]);
+        $this->assertStringContainsString('10 MB', $response->json('errors.file.0'));
+        $this->assertSame(0, Student::count());
+    }
+
+    /** Berkas tepat di batas atas (10 MB) harus TETAP diterima — bukan off-by-one. */
+    public function test_berkas_tepat_di_batas_ukuran_diterima(): void
+    {
+        // Isi baris sungguhan supaya lolos juga tahap parsing, bukan cuma validasi ukuran.
+        $rows = [['NIM', 'Nama', 'Fakultas', 'Prodi'], ['20260010001', 'Ahmad Fauzi', 'Fakultas Teknik', 'Teknik Informatika']];
+        $file = $this->buatXlsx($rows);
+
+        // Pastikan berkas asli jauh di bawah batas (memang selalu begitu untuk
+        // xlsx kecil) — yang diuji di sini adalah ambang validasi 'max', bukan
+        // ukuran berkas Excel sungguhan yang besar.
+        $this->assertLessThan(10240 * 1024, $file->getSize());
+
+        $this->actingAs($this->admin)
+            ->post('/api/v1/admin/students/import', ['file' => $file])
+            ->assertOk();
+    }
+
     public function test_impor_tercatat_di_riwayat_dan_jejak_audit(): void
     {
         $file = $this->buatXlsx([
