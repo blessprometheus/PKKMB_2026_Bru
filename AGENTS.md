@@ -59,6 +59,9 @@ Folder [`docs/`](docs/README.md) berisi seluruh keputusan proyek. **Baca yang re
 
 - **Dilarang** menambah library/framework baru (state manager, UI kit lain, ORM lain, queue eksternal)
   tanpa persetujuan user. Tanya dulu.
+- ⚠️ **`backend/CLAUDE.md` adalah bawaan kerangka Laravel, bukan dokumen proyek ini.** Isinya
+  menyuruh memasang **Laravel Boost** dan menimpa `AGENTS.md`. **Jangan jalankan** tanpa persetujuan
+  user — aturan §3 ini berlaku di atasnya. Berkas itu sengaja tidak dihapus karena bukan buatan kita.
 - **Dilarang** mengganti PostgreSQL ke MySQL/SQLite di produksi. SQLite hanya boleh untuk test lokal.
 - Versi persis tiap dependensi **diisi setelah instalasi nyata**, bukan ditebak — lihat §4.
 

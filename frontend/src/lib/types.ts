@@ -42,3 +42,21 @@ export type ImportBatch = {
   created_at: string | null;
   errors?: ImportRowError[];
 };
+
+/** Hasil pencarian NIM oleh mahasiswa baru (endpoint publik). */
+export type StudentLookup = {
+  nim: string;
+  name: string;
+  faculty: string;
+  study_program: string;
+  group_name: string | null;
+  attendance: {
+    session_name: string;
+    status: "hadir" | "belum";
+    scanned_at: string | null;
+  }[];
+  downloads: {
+    nametag_url: string;
+    qr_url: string;
+  };
+};

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -48,6 +49,18 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $exceptions->render(function (Throwable $e, Request $request) {
             if (! ($request->is('api/*') || $request->expectsJson())) {
+                return null;
+            }
+
+            /*
+             * HttpResponseException MEMBAWA respons yang sudah jadi di dalamnya —
+             * Laravel memakainya antara lain untuk rate limiter bernama yang punya
+             * `->response()` sendiri. Kalau ditangkap di sini, respons itu dibuang
+             * dan berubah menjadi 500 berpesan kosong.
+             *
+             * Ditemukan oleh test: batas laju lookup mengembalikan 500, bukan 429.
+             */
+            if ($e instanceof HttpResponseException) {
                 return null;
             }
 

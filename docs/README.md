@@ -47,15 +47,15 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 2 — Data & admin** 🟡 sebagian selesai (22 September 2026)
-**Berikutnya: Fase 3 — Lookup & unduhan maba**
+**Fase saat ini: Fase 3 — Lookup & unduhan maba** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: Fase 4 — Presensi**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
 | 0 | Dokumentasi & persiapan | ✅ Selesai | `docs/` + `AGENTS.md` lengkap dan disetujui user |
 | 1 | Fondasi teknis | 🟡 Sebagian | Repo git jadi; Laravel + Next jalan lokal; PostgreSQL tersambung; migrasi tabel jalan; VPS terpasang Nginx/PHP/Node/Postgres |
 | 2 | Data & admin | 🟡 Sebagian | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
-| 3 | Lookup & unduhan maba | ⬜ Belum | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
+| 3 | Lookup & unduhan maba | 🟡 Sebagian | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
 | 4 | Presensi | ⬜ Belum | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
 | 5 | Landing page | ⬜ Belum | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
 | 6 | Hardening & go-live | ⬜ Belum | `security-review` + `ship-gate` lolos; uji end-to-end dengan 3 scanner; backup & rencana cadangan siap; deploy produksi |
@@ -152,6 +152,41 @@ tetap mendapat 401.
   ([`04-security.md`](04-security.md) §5.3).
 - ⬜ `POST /admin/admins` dkk. (kelola akun panitia) — sementara akun dibuat lewat
   `php artisan pkkmb:create-admin`.
+
+### Catatan hasil Fase 3 (22 September 2026)
+
+**Total test naik jadi 46 (189 assertion, seluruhnya lolos).**
+
+- **`POST /api/v1/lookup`** — pencarian NIM tanpa login, dengan rate limit berlapis
+  (10/menit **dan** 40/jam per IP), pencatatan percobaan ber-hash, dan pesan 404 seragam.
+- **Minimisasi field terbukti lewat test**: `phone`, `email`, `birth_date`, dan `attendance_token`
+  tidak muncul di respons publik — diperiksa terhadap isi respons mentah, bukan sekadar strukturnya.
+- **Nametag PDF** (endroid/qr-code 6.0 + dompdf 3.1). Ukuran halaman diverifikasi
+  **105,0 × 148,0 mm** (A6) dari `MediaBox` PDF hasil render. QR menyatu di dalamnya — mitigasi L1
+  terhadap titipan absen ([`04-security.md`](04-security.md) §3.2). Nama panjang dikecilkan otomatis,
+  tidak dipotong.
+- **QR PNG 760 × 760 px**, error correction Quartile, quiet zone 80 px.
+- **Unduhan bertanda tangan, kedaluwarsa 15 menit.** Diuji: tanpa tanda tangan → 403, tanda tangan
+  diutak-atik → 403, lewat 16 menit → 403, dan **menukar id mahasiswa di URL → 403**.
+- **Test paling menentukan:** QR hasil unduhan **didekode ulang** dan isinya terbukti persis sama
+  dengan `attendance_token` di database — bukan NIM. Kalau isi QR salah, seluruh alur presensi
+  hari-H gagal, dan itu baru ketahuan saat 550 orang sudah mengantre.
+- **Halaman publik** `/` dengan kotak cari NIM, status kehadiran per sesi, dan dua tombol unduh.
+
+**Bug yang ditemukan test dan sudah diperbaiki:** penangan error global menelan `HttpResponseException`
+— kelas yang dipakai Laravel untuk membawa respons yang sudah jadi, termasuk dari rate limiter
+bernama. Akibatnya 429 berubah menjadi **500 berpesan kosong**. Sekarang dilewatkan apa adanya.
+
+**Temuan menguntungkan:** rewrite Next meneruskan header `Host`, sehingga URL bertanda tangan yang
+dibuat Laravel ikut memakai origin frontend. Unduhan pun tetap same-origin, baik di lokal maupun
+produksi.
+
+**Belum dikerjakan di Fase 3:**
+
+- ⬜ Cetak nametag massal 4-up A4 untuk panitia (S3, opsional).
+- ⬜ Logo UNINUS di nametag — menunggu D5. **Jangan memasang lambang karangan** di dokumen resmi
+  universitas; tata letaknya sudah menyediakan ruang.
+- ⬜ Pas foto di nametag (mitigasi L2 titipan absen) — bergantung ketersediaan foto dari PMB.
 
 ---
 

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\Admin\StudentController;
 use App\Http\Controllers\Api\Admin\StudentImportController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DownloadController;
+use App\Http\Controllers\Api\LookupController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,6 +18,28 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+
+    /*
+     * ── Publik: mahasiswa baru, TANPA login ──────────────────────────────
+     *
+     * POST (bukan GET) karena NIM adalah data pribadi: ?nim=... akan tercatat
+     * di log akses Nginx, riwayat browser, dan header Referer
+     * (docs/04-security.md §2 butir 3).
+     */
+    Route::post('lookup', LookupController::class)->middleware('throttle:lookup');
+
+    /*
+     * Unduhan bertanda tangan, kedaluwarsa 15 menit. Middleware `signed` yang
+     * menjaga — tanpa tanda tangan yang sah, permintaan ditolak sebelum
+     * menyentuh controller.
+     */
+    Route::middleware(['signed', 'throttle:20,1'])->group(function () {
+        Route::get('download/nametag/{student}', [DownloadController::class, 'nametag'])
+            ->name('unduh.nametag');
+
+        Route::get('download/qr/{student}', [DownloadController::class, 'qr'])
+            ->name('unduh.qr');
+    });
 
     /*
      * Autentikasi panitia.
