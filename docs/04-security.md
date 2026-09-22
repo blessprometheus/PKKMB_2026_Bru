@@ -192,6 +192,15 @@ Content-Security-Policy: default-src 'self'; img-src 'self' data:; frame-src htt
 CSP disesuaikan setelah tahu skrip apa saja yang benar-benar dipakai — **jangan** melonggarkannya
 dengan `unsafe-inline` hanya supaya cepat jalan; catat kalau terpaksa dan perbaiki sebelum go-live.
 
+> ⚠️ **`Referrer-Policy` tidak boleh disetel `no-referrer`.** Ditemukan saat uji rantai penuh
+> (22 September 2026): Sanctum hanya menyalakan sesi bila host di header `Origin` **atau** `Referer`
+> cocok dengan `SANCTUM_STATEFUL_DOMAINS`. Browser tidak mengirim `Origin` pada permintaan `GET`
+> same-origin — yang dikirim hanya `Referer`. Dengan `no-referrer`, keduanya hilang, seluruh
+> permintaan `GET` dianggap tidak bersesi, dan **panitia yang sudah masuk tetap mendapat 401**.
+>
+> `strict-origin-when-cross-origin` (nilai yang dipakai di atas) aman: untuk permintaan same-origin
+> ia tetap mengirim `Referer` lengkap.
+
 ---
 
 ## 8. Secret & Konfigurasi

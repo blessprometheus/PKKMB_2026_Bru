@@ -117,16 +117,41 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
    Sekarang mengembalikan **400 dengan pesan yang menyebut sebabnya** — agar salah konfigurasi ketahuan
    saat deploy, bukan saat hari-H.
 
+**Antarmuka admin (Next.js) — sudah jalan dan diuji end-to-end:**
+
+- `/admin/login`, `/admin` (dasbor), `/admin/mahasiswa` (tabel + pencarian *debounce* 400 ms +
+  paginasi), `/admin/mahasiswa/impor` (unggah + laporan baris gagal).
+- **Same-origin juga di lokal.** `next.config.ts` me-*rewrite* `/api/*` dan `/sanctum/*` ke Laravel,
+  sehingga browser hanya berbicara ke satu origin — persis seperti produksi di balik Nginx, dan
+  **CORS tidak perlu dilonggarkan sama sekali** ([`04-security.md`](04-security.md) §7).
+- Penjaga rute memakai **`proxy.ts`** (Next.js 16; `middleware.ts` sudah tidak berlaku).
+  Ia hanya memeriksa keberadaan cookie sesi — pengamanan sebenarnya tetap di Laravel.
+- Token warna UNINUS terpasang sebagai token Tailwind 4 di `globals.css`.
+
+**Diuji dengan menjalankan sungguhan (22 September 2026), bukan hanya lewat test:**
+`/sanctum/csrf-cookie` → 204 · login kata sandi salah → 422 dengan pesan seragam · login benar → 200 ·
+`/auth/me` dengan cookie sesi → 200 · unggah `.xlsx` berisi 3 baris (1 sengaja rusak) → 2 masuk,
+1 dilaporkan sebagai **baris 4, kolom `name`** · stempel waktu `+07:00` (Asia/Jakarta) benar.
+
+**Temuan keamanan dari uji itu, sudah dicatat di [`04-security.md`](04-security.md) §7:**
+`Referrer-Policy: no-referrer` **akan mematahkan autentikasi**. Browser tidak mengirim `Origin` pada
+`GET` same-origin, jadi Sanctum bergantung pada `Referer`; tanpa keduanya, panitia yang sudah masuk
+tetap mendapat 401.
+
 **Belum dikerjakan di Fase 2:**
 
 - ⬜ **Verifikasi peta kolom dengan file Excel PMB asli (D1).** Peta di `backend/config/pkkmb.php`
   masih rancangan. Ini blocker yang tersisa untuk menyatakan Fase 2 selesai.
+  Per 22 September 2026 user memberi kabar: data mahasiswa sudah ada **tetapi belum bernomor NIM**,
+  dan file ber-NIM masih ditunggu. Kolom `nim` **tetap wajib dan unik** — tidak dilonggarkan, karena
+  data yang masuk tanpa NIM hanya bisa dicocokkan lewat nama, dan nama kembar di 550 mahasiswa
+  hampir pasti ada.
+- ⬜ Form tambah/ubah mahasiswa di UI (endpoint-nya sudah ada dan teruji).
 - ⬜ `GET /admin/students/export` dan `GET /admin/import-batches/{id}/errors.xlsx`
   ([`03-api-spec.md`](03-api-spec.md) §4.1–4.2) — ekspor Excel, termasuk penetralan formula
   ([`04-security.md`](04-security.md) §5.3).
 - ⬜ `POST /admin/admins` dkk. (kelola akun panitia) — sementara akun dibuat lewat
   `php artisan pkkmb:create-admin`.
-- ⬜ Antarmuka admin di Next.js — backend-nya sudah siap dipakai.
 
 ---
 

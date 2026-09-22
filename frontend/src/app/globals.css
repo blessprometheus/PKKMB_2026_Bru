@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
+/*
+ * Token warna UNINUS. Sumber: docs/05-frontend-spec.md §2, diwarisi dari
+ * pkkmb v1 yang memverifikasinya dari CSS variable uninus.ac.id (2 Juli 2026).
+ *
+ * Aturan pakai yang tidak boleh dilanggar:
+ * - Emas (#FBC02D) DILARANG untuk teks biasa — kontrasnya terlalu rendah.
+ *   Hanya untuk latar badge (dengan teks gelap), garis aksen, dan sorotan.
+ * - Hijau mode gelap sengaja BUKAN #008F4F — warna itu gagal kontras di atas
+ *   #121212. Jangan "menyeragamkan" keduanya.
+ * - Warna tidak boleh jadi satu-satunya pembeda makna; selalu sertai ikon/teks.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --pk-primary: #008f4f;
+  --pk-primary-dark: #006f3c;
+  --pk-primary-light: #00b060;
+  --pk-secondary: #fbc02d;
+  --pk-secondary-dark: #e0a800;
+
+  --pk-bg: #f8f9fa;
+  --pk-surface: #ffffff;
+  --pk-surface-2: #f1f3f5;
+  --pk-text: #212529;
+  --pk-muted: #6c757d;
+  --pk-border: #e9ecef;
+
+  /* Tiga keadaan layar presensi — dipakai juga untuk status di dashboard. */
+  --pk-success: #008f4f;
+  --pk-warning: #dd6b20;
+  --pk-danger: #e53e3e;
+  --pk-info: #3182ce;
+}
+
+[data-theme="dark"] {
+  --pk-bg: #121212;
+  --pk-surface: #1e1e1e;
+  --pk-surface-2: #252525;
+  --pk-text: #e9ecef;
+  --pk-muted: #adb5bd;
+  --pk-border: #343a40;
+
+  --pk-primary: #12b866;
+  --pk-primary-dark: #0e9a55;
+  --pk-primary-light: #34d27f;
+  --pk-secondary: #ffd24d;
+  --pk-danger: #ff6b6b;
+  --pk-warning: #f6a15c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-pk-primary: var(--pk-primary);
+  --color-pk-primary-dark: var(--pk-primary-dark);
+  --color-pk-primary-light: var(--pk-primary-light);
+  --color-pk-secondary: var(--pk-secondary);
+  --color-pk-secondary-dark: var(--pk-secondary-dark);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-pk-bg: var(--pk-bg);
+  --color-pk-surface: var(--pk-surface);
+  --color-pk-surface-2: var(--pk-surface-2);
+  --color-pk-text: var(--pk-text);
+  --color-pk-muted: var(--pk-muted);
+  --color-pk-border: var(--pk-border);
+
+  --color-pk-success: var(--pk-success);
+  --color-pk-warning: var(--pk-warning);
+  --color-pk-danger: var(--pk-danger);
+  --color-pk-info: var(--pk-info);
+
+  --font-sans: var(--font-jakarta);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--pk-bg);
+  color: var(--pk-text);
+}
+
+/*
+ * JANGAN menyetel `scroll-behavior: smooth` di sini.
+ * Lenis akan dipasang di halaman publik pada Fase 5 dan keduanya berebut
+ * kendali gulir. Lihat docs/05-frontend-spec.md §8.3.
+ */
+
+/* Fokus keyboard harus selalu terlihat — halaman scan dipakai di bawah tekanan. */
+:focus-visible {
+  outline: 2px solid var(--pk-primary);
+  outline-offset: 2px;
 }
