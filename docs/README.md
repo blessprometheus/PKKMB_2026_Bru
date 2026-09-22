@@ -47,14 +47,14 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 1 — Fondasi teknis** 🟡 sebagian selesai (22 September 2026)
-**Berikutnya: selesaikan setup VPS, lalu Fase 2 — Data & admin**
+**Fase saat ini: Fase 2 — Data & admin** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: Fase 3 — Lookup & unduhan maba**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
 | 0 | Dokumentasi & persiapan | ✅ Selesai | `docs/` + `AGENTS.md` lengkap dan disetujui user |
 | 1 | Fondasi teknis | 🟡 Sebagian | Repo git jadi; Laravel + Next jalan lokal; PostgreSQL tersambung; migrasi tabel jalan; VPS terpasang Nginx/PHP/Node/Postgres |
-| 2 | Data & admin | ⬜ Belum | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
+| 2 | Data & admin | 🟡 Sebagian | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
 | 3 | Lookup & unduhan maba | ⬜ Belum | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
 | 4 | Presensi | ⬜ Belum | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
 | 5 | Landing page | ⬜ Belum | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
@@ -88,6 +88,45 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 - ⬜ **Setup VPS** (Nginx, PHP-FPM, Node, PostgreSQL, SSL) — butuh akses SSH ke server dari user.
 - ⬜ Provider animasi GSAP/Lenis belum ditulis; itu pekerjaan Fase 5 sesuai
   [`07-timeline.md`](07-timeline.md). Dependensinya sudah siap.
+
+### Catatan hasil Fase 2 (22 September 2026)
+
+**Backend selesai dan terbukti lewat 32 test otomatis (121 assertion, seluruhnya lolos):**
+
+- **Autentikasi:** login/logout/me dengan Sanctum cookie SPA. Terbukti: pesan gagal seragam antara
+  email terdaftar & tidak terdaftar, akun nonaktif ditolak, rate limit 5/menit per IP, penguncian akun
+  setelah 8 kegagalan beruntun.
+- **Pembatasan peran:** operator mendapat **403** saat membuka daftar mahasiswa dan impor — diuji,
+  bukan sekadar disembunyikan di UI.
+- **CRUD mahasiswa:** tambah/ubah/hapus, pencarian nama & NIM (`ILIKE`, tidak peduli huruf besar-kecil),
+  filter fakultas/kelompok/kehadiran, paginasi dibatasi 100.
+- **Impor Excel/CSV** (PhpSpreadsheet 5.10). Terbukti: kolom wajib hilang → **seluruh impor dibatalkan**
+  dengan pesan menyebut apa yang dicari & apa yang ditemukan; baris gagal dilaporkan dengan **nomor baris
+  Excel** sementara baris lain tetap masuk; NIM ganda dalam satu berkas ditolak; **impor ulang tidak
+  mengubah `attendance_token`** sehingga nametag yang sudah dicetak tetap sah; NIM berawalan nol tidak
+  kehilangan nolnya; berkas bukan Excel yang dinamai `.xlsx` ditolak.
+- **Jejak audit:** perubahan/penghapusan tercatat, dan **hanya nama kolom** yang berubah — bukan nilainya,
+  karena nilai lama/baru adalah data pribadi.
+- Pesan validasi Bahasa Indonesia (`lang/id/`).
+
+**Dua bug ditemukan oleh test dan sudah diperbaiki:**
+
+1. Hash boneka untuk menyamakan waktu respons login bukan bcrypt yang sah → `Hash::check` melempar
+   dan login berakhir **500**. Diganti hash bcrypt sungguhan.
+2. Permintaan dari domain di luar `SANCTUM_STATEFUL_DOMAINS` berakhir **500 "Session store not set"**.
+   Sekarang mengembalikan **400 dengan pesan yang menyebut sebabnya** — agar salah konfigurasi ketahuan
+   saat deploy, bukan saat hari-H.
+
+**Belum dikerjakan di Fase 2:**
+
+- ⬜ **Verifikasi peta kolom dengan file Excel PMB asli (D1).** Peta di `backend/config/pkkmb.php`
+  masih rancangan. Ini blocker yang tersisa untuk menyatakan Fase 2 selesai.
+- ⬜ `GET /admin/students/export` dan `GET /admin/import-batches/{id}/errors.xlsx`
+  ([`03-api-spec.md`](03-api-spec.md) §4.1–4.2) — ekspor Excel, termasuk penetralan formula
+  ([`04-security.md`](04-security.md) §5.3).
+- ⬜ `POST /admin/admins` dkk. (kelola akun panitia) — sementara akun dibuat lewat
+  `php artisan pkkmb:create-admin`.
+- ⬜ Antarmuka admin di Next.js — backend-nya sudah siap dipakai.
 
 ---
 

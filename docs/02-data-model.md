@@ -195,6 +195,12 @@ students 1 ─── n scan_logs
 
 1. **Pemetaan kolom eksplisit**, berdasarkan nama header — **tidak boleh** berdasarkan urutan kolom.
    Header dinormalkan dulu: huruf kecil, spasi/tanda baca → `_`.
+
+   > **Peta kolom yang berlaku ada di `backend/config/pkkmb.php` → `import.column_aliases`.**
+   > Itu satu-satunya tempat yang perlu diubah saat file PMB asli (D1) datang.
+   > Tabel di bawah adalah ringkasannya — kalau keduanya berbeda, **config yang benar**,
+   > dan tabel ini wajib diperbarui agar tidak menyesatkan.
+
    Peta sementara (wajib diverifikasi dengan D1):
 
    | Header Excel (dugaan) | Kolom DB |

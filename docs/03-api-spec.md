@@ -128,7 +128,15 @@ Ukuran minimal **600×600 px** agar tetap terbaca scanner setelah dikompres What
 | GET | `/api/v1/auth/me` | login | `{ id, name, email, role }` |
 
 Pesan gagal login **selalu sama** apa pun sebabnya: `"Email atau kata sandi salah."` — jangan
-membocorkan email mana yang terdaftar.
+membocorkan email mana yang terdaftar. Waktu responsnya pun disamakan: saat email tidak terdaftar,
+`Hash::check` tetap dijalankan terhadap hash boneka yang sah, supaya selisih waktu tidak ikut
+membocorkan email mana yang ada.
+
+**Status 400 — `SANCTUM_STATEFUL_DOMAINS` tidak cocok.** Login berbasis cookie butuh sesi, dan Sanctum
+hanya menyalakan sesi bila `Origin`/`Referer` permintaan cocok dengan daftar domain stateful. Bila tidak
+cocok, endpoint mengembalikan **400 dengan pesan yang menyebut `SANCTUM_STATEFUL_DOMAINS`** — bukan 500
+"Session store not set on request" yang tidak menjelaskan apa pun. Ini ditemukan lewat test, dan
+sengaja dipertahankan sebagai pesan diagnosis saat deploy.
 
 ---
 

@@ -35,6 +35,7 @@
 | Composer | **2.10.3** | `TODO:` | dipasang dengan verifikasi SHA-384 installer |
 | Laravel | **13.32.0** | idem | `laravel/framework ^13.17` |
 | Laravel Sanctum | terpasang via `artisan install:api` | idem | auth cookie SPA same-origin |
+| PhpSpreadsheet | **5.10** | idem | pembaca/penulis Excel & CSV. Dipilih langsung, bukan lewat pembungkus Laravel, agar tidak terikat siklus rilis paket pihak ketiga |
 | Node.js | **24.18.0** | `TODO:` | server: pakai versi LTS |
 | npm | **11.16.0** | `TODO:` | |
 | Next.js | **16.3.5** | idem | ⚠️ lihat catatan breaking change di bawah |
