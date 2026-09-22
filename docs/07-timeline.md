@@ -1,7 +1,8 @@
 # 07 — Timeline & Prioritas
 
 **Versi dokumen:** 1.0.0 · 22 September 2026
-**Hari-H:** ± **29 September 2026** — `TODO:` tanggal & jam resmi menunggu D2
+**Hari-H:** **Selasa, 29 September 2026**, registrasi 06:30–07:15 WIB — dikonfirmasi dari dokumen
+panitia (bahan/README.md §4). Hari ke-2 dst. belum ada dokumennya.
 **Sumber daya:** 1 orang (user) + AI. **Tujuh hari.**
 
 ---
@@ -70,7 +71,7 @@ Sebuah fase belum selesai sampai butirnya terbukti, bukan terlihat jalan.
 | 1 Fondasi | `php artisan migrate` jalan bersih di PostgreSQL kosong; Next memanggil satu endpoint Laravel dan menerima JSON |
 | 2 Data & admin | Impor **file PMB asli** berhasil, jumlah baris cocok, baris gagal terlaporkan dengan nomor barisnya |
 | 3 Lookup & unduhan | Nametag hasil unduhan **dicetak di kertas sungguhan** dan QR-nya terbaca scanner |
-| 4 Presensi | **Tiga scanner asli** memindai bersamaan; orang yang sama dipindai dua kali → `duplicate`, bukan dua baris; ekspor Excel memuat yang belum hadir |
+| 4 Presensi | **Scanner asli (3 atau 4, konfirmasi ulang — lihat §3)** memindai bersamaan; orang yang sama dipindai dua kali → `duplicate`, bukan dua baris; ekspor Excel memuat yang belum hadir |
 | 5 Landing | Tampil benar di 360 px tanpa gulir horizontal; informasi utama ada di HTML server-render |
 | 6 Go-live | Seluruh checklist [`04-security.md`](04-security.md) §11 ✅; backup sudah pernah dipulihkan sekali |
 
@@ -106,7 +107,7 @@ Ini bukan tanda pesimis. Ini yang membedakan "sistem gagal" dari "acara gagal".
 **Disiapkan H-1, dicetak, dibawa ke lokasi:**
 
 - Daftar hadir kertas per fakultas/kelompok: kolom **NIM · Nama · Paraf**, diurut berdasarkan NIM.
-- Tiga salinan (satu per titik presensi).
+- **Empat salinan** (satu per titik presensi — dokumen panitia menyebut 4 meja/scanner, lihat bahan/README.md §4; konfirmasikan ulang dengan user sebelum H-1).
 - Pulpen. Papan jalan.
 
 **Kapan dipakai:** koneksi putus > 2 menit, halaman `/scan` error berulang, atau antrean menumpuk

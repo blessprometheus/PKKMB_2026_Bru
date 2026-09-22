@@ -96,6 +96,16 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
+            // Menyamakan timezone sesi PostgreSQL dengan APP_TIMEZONE.
+            // Tanpa ini Postgres memakai timezone sistem server (di mesin dev:
+            // Asia/Bangkok), sementara Laravel mengirim string tanpa offset —
+            // hasilnya seluruh waktu bergeser tanpa ada yang error.
+            //
+            // WAJIB nama IANA, JANGAN offset seperti '+07:00'. Pada PostgreSQL,
+            // SET TIME ZONE dengan offset memakai konvensi POSIX yang tandanya
+            // TERBALIK: '+07:00' berarti UTC-7, bukan UTC+7. Ditemukan oleh test,
+            // dan gejalanya hanya berupa waktu yang meleset tanpa error apa pun.
+            'timezone' => env('DB_TIMEZONE', 'Asia/Jakarta'),
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 

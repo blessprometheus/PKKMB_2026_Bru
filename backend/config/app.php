@@ -65,7 +65,10 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // WAJIB sama dengan timezone koneksi PostgreSQL di config/database.php.
+    // Kalau berbeda, setiap stempel waktu kehadiran bergeser diam-diam
+    // (ditemukan oleh test: pergeseran 7 jam). Lihat docs/02-data-model.md §1.
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------

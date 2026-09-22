@@ -221,6 +221,7 @@ Validasi berkas & aturan upsert ada di [`02-data-model.md`](02-data-model.md) §
 }
 ```
 
+`session_id` bersifat opsional; tanpa itu, statistik mengikuti sesi yang sedang **aktif**.
 `scans_per_10min` dipakai untuk grafik laju kedatangan — pakai skill `dataviz` saat membuat grafiknya.
 
 ### 4.5 Akun panitia

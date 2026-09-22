@@ -10,6 +10,8 @@ const MENU = [
   { href: "/admin", label: "Dasbor" },
   { href: "/admin/mahasiswa", label: "Mahasiswa" },
   { href: "/admin/mahasiswa/impor", label: "Impor Data" },
+  { href: "/admin/sesi", label: "Sesi Presensi" },
+  { href: "/admin/presensi", label: "Rekap Kehadiran" },
 ];
 
 /**

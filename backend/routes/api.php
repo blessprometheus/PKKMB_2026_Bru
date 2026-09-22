@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AttendanceController;
+use App\Http\Controllers\Api\Admin\AttendanceSessionController;
 use App\Http\Controllers\Api\Admin\StudentController;
 use App\Http\Controllers\Api\Admin\StudentImportController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DownloadController;
 use App\Http\Controllers\Api\LookupController;
+use App\Http\Controllers\Api\ScanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,5 +72,32 @@ Route::prefix('v1')->group(function () {
 
             Route::post('students/{student}/rotate-token', [StudentController::class, 'rotateToken']);
             Route::apiResource('students', StudentController::class);
+
+            // Sesi presensi
+            Route::post('attendance-sessions/{attendanceSession}/activate', [AttendanceSessionController::class, 'activate']);
+            Route::apiResource('attendance-sessions', AttendanceSessionController::class)
+                ->except(['show']);
+
+            // Rekap kehadiran
+            Route::get('attendances/export', [AttendanceController::class, 'export']);
+            Route::get('attendances', [AttendanceController::class, 'index']);
+            Route::post('attendances', [AttendanceController::class, 'store']);
+            Route::delete('attendances/{attendance}', [AttendanceController::class, 'destroy']);
+            Route::get('dashboard/stats', [AttendanceController::class, 'stats']);
+        });
+
+    /*
+     * ── Presensi: admin DAN operator ─────────────────────────────────────
+     *
+     * Batas laju longgar (180/menit) karena 4 titik memindai bersamaan dalam
+     * jendela 45 menit — batas yang terlalu ketat justru akan mengunci petugas
+     * di tengah antrean (bahan/README.md §4).
+     */
+    Route::middleware(['auth:sanctum', 'role:admin,operator', 'throttle:180,1'])
+        ->group(function () {
+            Route::get('scan/context', [ScanController::class, 'context']);
+            Route::get('scan/recent', [ScanController::class, 'recent']);
+            Route::post('scan/manual', [ScanController::class, 'manual']);
+            Route::post('scan', [ScanController::class, 'scan']);
         });
 });

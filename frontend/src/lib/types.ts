@@ -60,3 +60,53 @@ export type StudentLookup = {
     qr_url: string;
   };
 };
+
+// ── Presensi (Fase 4) ────────────────────────────────────────────────
+
+export type ScanSession = {
+  id: number;
+  name: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  is_open_now: boolean;
+};
+
+export type ScanContext = {
+  operator: { name: string; role: AdminRole };
+  sessions: ScanSession[];
+  server_time: string;
+};
+
+export type ScanResult = {
+  result: "recorded" | "duplicate" | "unknown_token" | "session_closed" | "gagal_kirim";
+  message: string;
+  student: {
+    name: string;
+    nim: string;
+    study_program: string;
+    group_name: string | null;
+  } | null;
+  scanned_at: string | null;
+};
+
+export type RecentScan = {
+  name: string | null;
+  nim: string | null;
+  scanned_at: string | null;
+  method: "qr" | "manual";
+};
+
+export type AttendanceSessionAdmin = ScanSession & {
+  event_date: string | null;
+  attendances_count: number;
+};
+
+export type DashboardStats = {
+  total_students: number;
+  active_session: { id: number; name: string } | null;
+  present_count: number;
+  absent_count: number;
+  by_faculty: { faculty: string; total: number; present: number }[];
+  scans_per_10min: { at: string; count: number }[];
+};

@@ -35,7 +35,7 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 | Cara maba dapat data | Masukkan **NIM** di landing page | Lihat risiko di [`04-security.md`](04-security.md) §2 |
 | Yang diunduh maba | Nametag + QR presensi | |
 | Format barcode | **QR Code** | Scanner kampus jenis 2D/imager, sudah tersedia |
-| Alat presensi | 3 scanner gun di kampus → halaman scan milik kita | Scanner berperilaku seperti keyboard |
+| Alat presensi | Scanner gun di kampus → halaman scan milik kita | ⚠️ User sebutkan **3**, dokumen panitia sebut **4** meja/komputer/scanner. Scanner berperilaku seperti keyboard. Belum dikonfirmasi ulang |
 | Sumber data maba | **Impor file Excel/CSV dari bagian PMB** | Nama kolom **wajib diverifikasi dari file asli** |
 | Jumlah peserta | ± 502–550 mahasiswa | |
 | Titik presensi | 3 titik paralel | |
@@ -51,8 +51,8 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 
 ## Status Proyek
 
-**Fase saat ini: Fase 3 — Lookup & unduhan maba** 🟡 sebagian selesai (22 September 2026)
-**Berikutnya: Fase 4 — Presensi**
+**Fase saat ini: Fase 4 — Presensi** 🟡 sebagian selesai (22 September 2026)
+**Berikutnya: Fase 5 — Landing page**
 
 | Fase | Nama | Status | Exit Criteria |
 |---|---|---|---|
@@ -60,7 +60,7 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 | 1 | Fondasi teknis | 🟡 Sebagian | Repo git jadi; Laravel + Next jalan lokal; PostgreSQL tersambung; migrasi tabel jalan; VPS terpasang Nginx/PHP/Node/Postgres |
 | 2 | Data & admin | 🟡 Sebagian | Login admin jalan; impor Excel berhasil dengan file PMB asli; CRUD mahasiswa jalan |
 | 3 | Lookup & unduhan maba | 🟡 Sebagian | Cari NIM → tampil data → unduh nametag PDF & QR PNG; rate limit aktif |
-| 4 | Presensi | ⬜ Belum | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
+| 4 | Presensi | 🟡 Sebagian | Halaman scan jalan dengan scanner gun nyata; kehadiran tercatat; duplikat ditolak; laporan & ekspor jalan |
 | 5 | Landing page | ⬜ Belum | Halaman informasi tampil benar & responsif; SEO/OG terpasang |
 | 6 | Hardening & go-live | ⬜ Belum | `security-review` + `ship-gate` lolos; uji end-to-end dengan 3 scanner; backup & rencana cadangan siap; deploy produksi |
 
@@ -188,9 +188,73 @@ produksi.
 **Belum dikerjakan di Fase 3:**
 
 - ⬜ Cetak nametag massal 4-up A4 untuk panitia (S3, opsional).
-- ⬜ Logo UNINUS di nametag — menunggu D5. **Jangan memasang lambang karangan** di dokumen resmi
-  universitas; tata letaknya sudah menyediakan ruang.
+- ✅ **Logo UNINUS & PKKMB di nametag** — diselesaikan 22 Sep 2026 setelah D5 diterima. Lihat
+  [`../bahan/README.md`](../bahan/README.md) §3.
 - ⬜ Pas foto di nametag (mitigasi L2 titipan absen) — bergantung ketersediaan foto dari PMB.
+
+### Catatan hasil Fase 4 (22 September 2026)
+
+**Total test naik jadi 63 (251 assertion, seluruhnya lolos).**
+
+- **`POST /api/v1/scan`** dan **`POST /api/v1/scan/manual`** — inti presensi. Diuji: pemindaian
+  pertama → `recorded`; pemindaian kedua orang yang sama → `duplicate` dengan jam pemindaian
+  sebelumnya; **10 tembakan beruntun untuk orang yang sama tetap menghasilkan satu baris** (meniru
+  petugas panik menembak berkali-kali karena layar terlambat berubah); token tidak dikenal →
+  `unknown_token`; sesi di luar jendela waktu → `session_closed` dengan pesan yang membedakan
+  "belum dibuka" dari "sudah ditutup".
+- **Duplikat dicegah oleh `INSERT ... ON CONFLICT DO NOTHING` di level database**, bukan
+  `if`/`exists()` di PHP — dibuktikan lewat 10 pemindaian beruntun yang tetap menghasilkan
+  satu baris, mensimulasikan beberapa scanner menembak nyaris bersamaan.
+- **Input manual NIM** sebagai cadangan (M10) — diuji jalur berhasil maupun NIM tidak ditemukan.
+- **Setiap hasil pemindaian, termasuk yang ditolak, tercatat di `scan_logs`** dengan **hash**
+  input mentah, bukan token polos — dibuktikan lewat pengecekan langsung terhadap kolomnya.
+- **Sesi presensi**: CRUD + endpoint `activate` yang menonaktifkan sesi lain secara otomatis,
+  supaya hanya satu sesi yang bisa menerima pemindaian pada satu waktu.
+- **Rekap & ekspor Excel**: menyertakan mahasiswa yang **belum hadir** juga. **Penetralan formula
+  dibuktikan langsung**: nilai `=cmd|calc`, `+1+1`, `-SUM(A1)` diperiksa di berkas `.xlsx` hasil
+  ekspor — seluruhnya tersimpan bertipe string dengan awalan petik tunggal, sehingga Excel tidak
+  akan pernah menjalankannya sebagai formula di komputer panitia.
+- **Statistik dasbor**: total/hadir/belum-hadir, sebaran per fakultas, dan laju kedatangan per
+  10 menit — dibuat untuk jendela registrasi yang cuma 45 menit
+  ([`../bahan/README.md`](../bahan/README.md) §4), supaya panitia bisa melihat kalau antrean menumpuk.
+- **Halaman `/scan`**: input tersembunyi (`-webkit-text-security`) agar token tak terbaca dari
+  layar yang menghadap antrean, fokus otomatis kembali tiap 700 ms, pengiriman terpicu jeda 80 ms
+  tanpa ketikan baru (bukan hanya menunggu Enter), penolakan tembakan identik dalam 1,5 detik, bunyi
+  berbeda untuk tiga hasil, indikator "Terhubung" yang berubah merah seketika saat gagal, dan mode
+  input NIM manual. **Sengaja tanpa animasi, tanpa Lenis, tanpa GSAP.**
+- **Halaman admin baru**: `/admin/sesi` (kelola sesi, prasetel dari jadwal panitia) dan
+  `/admin/presensi` (statistik + rekap + tombol unduh Excel).
+
+**Diuji dengan menjalankan sungguhan lewat rantai penuh** (bukan hanya test otomatis): login
+operator → scan token pertama kali → `recorded` → scan token yang sama lagi → `duplicate` dengan jam
+yang benar → scan manual NIM lain → `recorded` → token acak → `unknown_token`. Lalu login admin →
+statistik dasbor cocok (2 hadir, sebaran per fakultas benar) → rekap menampilkan metode `qr` dan
+`manual` dengan benar → unduh Excel → dibuka ulang dengan PhpSpreadsheet → berisi kolom BELUM HADIR
+untuk mahasiswa ketiga yang sengaja belum dipindai.
+
+**Dua bug serius ditemukan test dan sudah diperbaiki — keduanya soal zona waktu:**
+
+1. `config/app.php` bawaan Laravel menulis `'timezone' => 'UTC'` **hardcoded** — `APP_TIMEZONE` di
+   `.env` tidak pernah terbaca. Sekarang membaca `env('APP_TIMEZONE', 'UTC')`.
+2. Setelah diperbaiki, muncul pergeseran **15 jam** yang justru lebih aneh. Penyebabnya:
+   `SET TIME ZONE '+07:00'` di PostgreSQL memakai **konvensi POSIX yang tandanya terbalik** —
+   `+07:00` berarti UTC−7, bukan UTC+7. Diganti ke nama zona IANA (`Asia/Jakarta`), yang tidak
+   ambigu. Ditambahkan test regresi (`test_stempel_waktu_tidak_bergeser_antara_aplikasi_dan_database`)
+   supaya ini tidak terulang secara diam-diam.
+   Konsekuensi di hari-H kalau ini tidak ketahuan: sesi presensi akan salah dianggap
+   ditutup/belum dibuka pada jam yang sebenarnya benar, dan **seluruh pemindaian ditolak**.
+3. Bug kecil ketiga: dua pemindaian pada detik yang sama membuat urutan "10 pemindaian terakhir"
+   tidak deterministik. Ditambahkan `orderByDesc('id')` sebagai pemecah seri.
+
+**Belum dikerjakan di Fase 4:**
+
+- ⬜ **Uji dengan scanner gun sungguhan.** Semua pengujian di atas memakai token yang dikirim
+  langsung lewat API — *belum* diuji dengan alat fisik yang mengetik ke kolom input, termasuk
+  perilaku sufiks Enter/tanpa Enter yang disebutkan di [`05-frontend-spec.md`](05-frontend-spec.md)
+  §4.1. **Ini bukan opsional** — lihat peringatan di bawah tabel fase.
+- ⬜ Antrean offline / ketahanan saat koneksi putus (S4).
+- ⬜ Cetak daftar hadir kertas cadangan (bagian dari runbook H-1, bukan kode).
+- ⬜ Endpoint kelola akun panitia (masih lewat `php artisan pkkmb:create-admin`).
 
 ---
 
