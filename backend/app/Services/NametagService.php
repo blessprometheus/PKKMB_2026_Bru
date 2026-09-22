@@ -31,6 +31,8 @@ class NametagService
             'student' => $student,
             'qrDataUri' => $this->qrCode->dataUriFor($student),
             'ukuranNama' => $this->ukuranFontNama($student->name),
+            'logoUninus' => $this->logoDataUri('logo-uninus.png'),
+            'logoPkkmb' => $this->logoDataUri('logo-pkkmb.png'),
         ])->render();
 
         $dompdf->loadHtml($html, 'UTF-8');
@@ -38,6 +40,27 @@ class NametagService
         $dompdf->render();
 
         return (string) $dompdf->output();
+    }
+
+    /**
+     * Logo ditanam sebagai data URI, bukan dirujuk lewat path.
+     *
+     * `isRemoteEnabled` sengaja dimatikan agar PDF tidak pernah mengambil aset
+     * dari luar; menanam berkasnya langsung membuat nametag tetap utuh tanpa
+     * melonggarkan aturan itu.
+     *
+     * Mengembalikan string kosong bila berkas belum ada — nametag tetap tercetak
+     * tanpa logo, bukan gagal total. Lihat docs/01-prd.md §8 (D5).
+     */
+    private function logoDataUri(string $namaBerkas): string
+    {
+        $path = resource_path('images/'.$namaBerkas);
+
+        if (! is_file($path)) {
+            return '';
+        }
+
+        return 'data:image/png;base64,'.base64_encode((string) file_get_contents($path));
     }
 
     /**

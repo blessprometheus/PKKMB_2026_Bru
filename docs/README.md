@@ -41,7 +41,11 @@ Aturan kerja agen AI ada di [`../AGENTS.md`](../AGENTS.md).
 | Titik presensi | 3 titik paralel | |
 | Tim | 1 orang (user) + AI | |
 | Bahasa | Bahasa Indonesia (`lang="id-ID"`) | |
-| Hari pelaksanaan | ± 29 September 2026 (seminggu dari 22 Sep) | ⚠️ `TODO:` tanggal & jam resmi belum dikonfirmasi |
+| **Hari pelaksanaan** | **Selasa, 29 September 2026** (hari pertama) | Dari dokumen panitia, lihat [`../bahan/README.md`](../bahan/README.md) §4. Hari ke-2 dst. belum ada dokumennya |
+| **Registrasi daftar hadir** | **06:30 – 07:15 WIB** — hanya 45 menit | ±550 mahasiswa, 4 titik scan → rata-rata 1 pemindaian per ~20 detik per titik |
+| **Lokasi** | Aula UNINUS, Gedung Pascasarjana Lt. 3 | |
+| **Tema resmi** | *Berakar pada Nilai, Bertumbuh dalam Ilmu dan Bergerak Membawa Dampak* | |
+| Bahan dari panitia | Logo UNINUS, logo & maskot PKKMB, susunan acara hari 1 | Tersimpan di [`../bahan/`](../bahan/README.md) |
 
 ---
 

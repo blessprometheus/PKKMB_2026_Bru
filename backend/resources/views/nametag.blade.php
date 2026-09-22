@@ -37,6 +37,17 @@
         .pita .kegiatan { font-size: 15pt; font-weight: bold; letter-spacing: .5pt; }
         .pita .lembaga { font-size: 7.5pt; margin-top: 1.5mm; }
 
+        /* Tema dicetak kecil: ia identitas acara, bukan informasi yang dicari
+           petugas saat memeriksa nametag. */
+        .pita .tema { font-size: 5.5pt; margin-top: 1.5mm; line-height: 1.3; opacity: .9; }
+
+        /* DomPDF tidak mendukung flexbox — tata letak dua kolom memakai tabel. */
+        .baris-logo { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
+        .baris-logo td { vertical-align: middle; }
+        .baris-logo .kiri { text-align: left; }
+        .baris-logo .kanan { text-align: right; }
+        .baris-logo img { height: 11mm; }
+
         /* Ruang untuk lubang tali. Tanpa ini, lubang akan menembus nama. */
         .lubang-tali { height: 9mm; }
 
@@ -93,8 +104,25 @@
 </head>
 <body>
     <div class="pita">
+        @if ($logoUninus || $logoPkkmb)
+            <table class="baris-logo"><tr>
+                <td class="kiri">
+                    @if ($logoUninus)
+                        <img src="{{ $logoUninus }}" alt="Logo Universitas Islam Nusantara">
+                    @endif
+                </td>
+                <td class="kanan">
+                    @if ($logoPkkmb)
+                        <img src="{{ $logoPkkmb }}" alt="Logo PKKMB 2026">
+                    @endif
+                </td>
+            </tr></table>
+        @endif
+
         <div class="kegiatan">PKKMB 2026</div>
         <div class="lembaga">UNIVERSITAS ISLAM NUSANTARA</div>
+        {{-- Tema resmi, dari dokumen panitia (bahan/README.md §4). --}}
+        <div class="tema">Berakar pada Nilai, Bertumbuh dalam Ilmu<br>dan Bergerak Membawa Dampak</div>
     </div>
 
     <div class="lubang-tali"></div>

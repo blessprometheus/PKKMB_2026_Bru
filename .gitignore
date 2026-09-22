@@ -41,3 +41,9 @@ opencode.zip
 Thumbs.db
 desktop.ini
 *.log
+
+# === Dokumen panitia bertanda CONFIDENTIAL ===
+# Lihat bahan/README.md §2. Berkasnya tetap ada di mesin lokal, tapi tidak
+# ikut terbawa bila repositori ini dipasang di GitHub/GitLab atau dibagikan.
+# Fakta yang dibutuhkan proyek sudah dirangkum di bahan/README.md §4.
+bahan/dokumen/*.pdf

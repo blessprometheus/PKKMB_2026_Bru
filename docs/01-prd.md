@@ -162,13 +162,13 @@ Menambahkan salah satunya = perubahan sifat proyek, **harus disetujui user lebih
 | # | Data | Dibutuhkan untuk | Prioritas | Status |
 |---|---|---|---|---|
 | D1 | **Contoh file Excel asli dari PMB** (boleh data disamarkan) | Memverifikasi nama kolom sebelum menulis importer | 🔴 Blocker Fase 2 | ⬜ Belum |
-| D2 | Tanggal & jam resmi PKKMB 2026, serta **daftar sesi presensi** (berapa hari, berapa sesi per hari) | Tabel `attendance_sessions`, countdown, rekap | 🔴 Blocker Fase 4 | ⬜ Belum |
-| D3 | Desain/ketentuan nametag: ukuran, logo, apakah memuat foto, siapa yang mencetak | Layout PDF nametag | 🔴 Blocker Fase 3 | ⬜ Belum |
-| D4 | Merek & model scanner gun yang dipakai | Memastikan QR terbaca & menentukan sufiks Enter | 🔴 Blocker Fase 4 | ⬜ Belum |
-| D5 | Logo UNINUS resolusi tinggi (SVG/PNG transparan) + logo PKKMB 2026 | Nametag, navbar, favicon, OG image | 🟠 Fase 3 | ⬜ Belum |
+| D2 | Tanggal & jam resmi PKKMB 2026, serta **daftar sesi presensi** (berapa hari, berapa sesi per hari) | Tabel `attendance_sessions`, countdown, rekap | 🔴 Blocker Fase 4 | 🟡 **Sebagian** — hari pertama **Selasa, 29 Sep 2026**, registrasi **06:30–07:15 WIB**, lokasi **Aula UNINUS Gd. Pascasarjana Lt. 3** (dari [`bahan/README.md`](../bahan/README.md) §4). **Hari ke-2 dst. belum ada** |
+| D3 | Desain/ketentuan nametag: ukuran, logo, apakah memuat foto, siapa yang mencetak | Layout PDF nametag | 🟠 Fase 3 | 🟡 **Sebagian** — logo sudah ada; ukuran A6 dipakai sebagai rancangan. **Belum dikonfirmasi:** apakah memuat pas foto, dan siapa yang mencetak |
+| D4 | Merek & model scanner gun yang dipakai | Memastikan QR terbaca & menentukan sufiks Enter | 🔴 Blocker Fase 4 | 🟡 **Sebagian** — dokumen panitia menyebut **4 meja, 4 komputer, 4 scanner barcode**. ⚠️ User sebelumnya menyebut **3** alat. **Merek/model masih belum diketahui** |
+| D5 | Logo UNINUS resolusi tinggi (SVG/PNG transparan) + logo PKKMB 2026 | Nametag, navbar, favicon, OG image | 🟠 Fase 3 | ✅ **Diterima 22 Sep 2026** — lihat [`bahan/README.md`](../bahan/README.md) |
 | D6 | Apakah maba dikelompokkan (gugus/kelompok + nama pendamping) | Kolom `kelompok` di nametag & rekap | 🟠 Fase 2 | ⬜ Belum |
 | D7 | Nama & jumlah admin/petugas yang butuh akun | Seeder akun | 🟠 Fase 2 | ⬜ Belum |
-| D8 | Tema & tagline resmi PKKMB 2026 | Hero landing | 🟡 Fase 5 | ⬜ Belum |
+| D8 | Tema & tagline resmi PKKMB 2026 | Hero landing | 🟡 Fase 5 | ✅ **Diterima** — *"Berakar pada Nilai, Bertumbuh dalam Ilmu dan Bergerak Membawa Dampak"* |
 | D9 | Naskah informasi, rundown, tata tertib (+ PDF) | Section landing | 🟡 Fase 5 | ⬜ Belum |
 | D10 | Link YouTube video profil & sambutan LLDIKTI Wilayah IV | Section video | 🟡 Fase 5 | ⬜ Belum |
 | D11 | Daftar narahubung panitia (nama, divisi, nomor WA) | Section kontak | 🟡 Fase 5 | ⬜ Belum |
