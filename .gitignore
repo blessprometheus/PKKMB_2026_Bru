@@ -23,12 +23,21 @@ build/
 dist/
 
 # === Laravel ===
+# Yang diabaikan ISINYA, bukan foldernya. Laravel gagal total ("bootstrap/cache
+# directory must be present and writable") bila folder ini tidak ada, dan git
+# tidak menyimpan folder kosong — jadi tiap folder menyimpan satu .gitignore
+# penanda. Ditemukan 24 Sep 2026 saat clone pertama di server.
 backend/storage/*.key
-backend/storage/logs/
-backend/storage/framework/cache/
-backend/storage/framework/sessions/
-backend/storage/framework/views/
-backend/bootstrap/cache/
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitignore
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitignore
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitignore
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
 
 # === Artefak yang tidak berhubungan dengan proyek ===
 opencode/
