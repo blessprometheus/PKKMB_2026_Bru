@@ -41,8 +41,15 @@ if [ "$PERTAMA_KALI" = true ]; then
         exit 1
     fi
 
-    echo "==> Membuat APP_KEY (hanya sekali)"
-    php artisan key:generate --force
+    # Jangan pernah menimpa APP_KEY yang sudah ada: kunci baru memutus semua sesi
+    # login panitia dan membatalkan seluruh URL unduhan bertanda tangan yang
+    # sedang beredar. Menjalankan ulang --pertama-kali harus aman.
+    if grep -qE '^APP_KEY=base64:.+' .env; then
+        echo "==> APP_KEY sudah ada — dibiarkan"
+    else
+        echo "==> Membuat APP_KEY (hanya sekali)"
+        php artisan key:generate --force
+    fi
 fi
 
 # php artisan down HANYA untuk migrasi yang mengubah struktur tabel. Untuk
@@ -62,6 +69,14 @@ php artisan view:cache
 
 echo "==> Mode perawatan nonaktif"
 php artisan up
+
+# Skrip ini dijalankan sebagai root, sehingga berkas yang baru dibuat artisan
+# (log, cache) ikut milik root. PHP-FPM yang berjalan sebagai user web lalu
+# gagal menulis ke sana dan setiap permintaan berakhir 500.
+# aaPanel: user web = "www". Ubuntu polos: "www-data".
+WEB_USER="${PKKMB_WEB_USER:-www-data}"
+echo "==> Menyerahkan storage/ & bootstrap/cache/ ke user web: $WEB_USER"
+chown -R "$WEB_USER:$WEB_USER" "$APP_DIR/backend/storage" "$APP_DIR/backend/bootstrap/cache"
 
 echo "==> Memasang dependensi & build frontend"
 cd "$APP_DIR/frontend"

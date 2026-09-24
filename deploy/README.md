@@ -8,6 +8,7 @@ Semuanya sudah **divalidasi sebatas yang bisa dilakukan tanpa akses VPS sungguha
 
 | Berkas | Kegunaan |
 |---|---|
+| [`AAPANEL.md`](AAPANEL.md) | **Mulai dari sini** — langkah deploy untuk server sungguhan (103.74.5.229, aaPanel) |
 | [`nginx/pkkmb26.conf`](nginx/pkkmb26.conf) | Konfigurasi Nginx lengkap: redirect HTTPS, header keamanan, split rute API/Next.js |
 | [`pm2/ecosystem.config.js`](pm2/ecosystem.config.js) | Menjaga proses Next.js tetap hidup |
 | [`backup/backup-db.sh`](backup/backup-db.sh) | Backup harian penuh PostgreSQL |

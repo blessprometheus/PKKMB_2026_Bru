@@ -16,7 +16,10 @@ module.exports = {
       name: "pkkmb-web",
       cwd: "/var/www/pkkmb26/frontend",
       script: "npm",
-      args: "start",
+      // `next start` bawaannya mendengarkan SEMUA antarmuka (0.0.0.0), sehingga
+      // port 3000 bisa diakses langsung dari internet, melewati Nginx beserta
+      // header keamanannya. Ikat ke localhost saja — hanya Nginx yang boleh bicara.
+      args: "start -- -H 127.0.0.1",
       // TODO: sesuaikan jumlah instance dengan jumlah core VPS setelah
       // instalasi nyata. 1 instance cukup untuk beban kecil hari-H
       // (±550 mahasiswa dalam jendela 45 menit) — jangan menaikkan tanpa

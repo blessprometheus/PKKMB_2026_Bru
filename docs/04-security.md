@@ -189,6 +189,13 @@ Referrer-Policy: strict-origin-when-cross-origin
 Content-Security-Policy: default-src 'self'; img-src 'self' data:; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'
 ```
 
+> ⚠️ **CSP di atas belum bisa ditegakkan — sementara dipasang `Content-Security-Policy-Report-Only`.**
+> Diverifikasi 24 September 2026 dari hasil `next build`: HTML Next.js App Router memuat `<script>`
+> inline (`self.__next_f.push(...)`) untuk hidrasi. `script-src 'self'` yang ditegakkan memblokirnya,
+> dan form cari NIM, `/admin`, serta `/scan` mati total. Jalan keluar yang benar: **nonce per
+> permintaan lewat `proxy.ts`** (belum dikerjakan). Checklist butir 15 belum boleh dianggap lolos
+> penuh sampai CSP ditegakkan.
+
 CSP disesuaikan setelah tahu skrip apa saja yang benar-benar dipakai — **jangan** melonggarkannya
 dengan `unsafe-inline` hanya supaya cepat jalan; catat kalau terpaksa dan perbaiki sebelum go-live.
 

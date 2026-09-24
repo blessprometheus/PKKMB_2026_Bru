@@ -149,6 +149,11 @@ Setel `TRUSTED_PROXIES` di Laravel.
 
 ## 5. Langkah Deploy (pertama kali)
 
+> **Server sungguhan memakai aaPanel** (103.74.5.229, dikonfirmasi user 24 September 2026).
+> Langkah untuk server itu ada di [`../deploy/AAPANEL.md`](../deploy/AAPANEL.md) — Nginx, PHP, dan SSL
+> diurus lewat panel, bukan `/etc/nginx/sites-enabled` + certbot. Langkah di bawah tetap berlaku untuk
+> server Ubuntu polos.
+
 1. Pasang paket sistem: Nginx, PHP-FPM + ekstensi, Composer, Node.js, PM2, PostgreSQL, certbot.
 2. Buat database dan user PostgreSQL **khusus aplikasi** (bukan superuser), batasi ke `localhost`.
 3. Klon repo ke `/var/www/pkkmb26`.
