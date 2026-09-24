@@ -52,8 +52,10 @@ berbeda — berhenti dan tanyakan dulu.
    Laravel 13 butuh PHP ≥ 8.3 (`backend/composer.json`).
 2. **App Store → PHP-8.3 → Setting → Install extensions** → pasang: `fileinfo`, `intl`, `opcache`,
    dan **`pgsql` / `pdo_pgsql`** kalau ada di daftar.
-3. **PHP-8.3 → Setting → Disabled functions** → **hapus** dari daftar: `putenv`, `proc_open`,
-   `symlink`. (Composer dan Laravel memakainya; aaPanel mematikannya secara bawaan.)
+3. **JANGAN ubah "Disabled functions".** Pengaturan itu berlaku untuk **semua situs** di server
+   (server ini menjalankan uninus.ac.id, SSO, keuangan, dll). Diperiksa 24 Sep 2026: PHP **CLI** tidak
+   mematikan fungsi apa pun, jadi Composer & artisan tetap jalan; PHP-FPM tidak membutuhkan `putenv`/
+   `proc_open` selama konfigurasi di-cache (`config:cache`, dijalankan `deploy.sh`).
 4. Cek dari Terminal:
 
 ```bash
