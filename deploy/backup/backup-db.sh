@@ -16,6 +16,11 @@ set -euo pipefail
 DB_NAME="${PKKMB_DB_NAME:-pkkmb26}"
 DB_USER="${PKKMB_DB_USER:-pkkmb26_app}"
 DB_HOST="${PKKMB_DB_HOST:-127.0.0.1}"
+# Server produksi: PostgreSQL PKKMB berjalan di container Docker terpisah pada
+# port 5433 (5432 milik PostgreSQL aaPanel yang dipakai aplikasi lain), dan
+# pg_dump tidak ada di PATH. Lihat deploy/AAPANEL.md.
+DB_PORT="${PKKMB_DB_PORT:-5432}"
+PG_DUMP="${PKKMB_PG_DUMP:-pg_dump}"
 BACKUP_DIR="${PKKMB_BACKUP_DIR:-/var/backups/pkkmb26}"
 SIMPAN_HARI=14
 
@@ -28,7 +33,7 @@ echo "[$(date -Iseconds)] Memulai backup penuh -> $BERKAS"
 
 # Kredensial diambil dari ~/.pgpass, BUKAN dari argumen baris perintah —
 # argumen CLI terlihat oleh siapa pun yang menjalankan `ps aux` di server yang sama.
-pg_dump --host="$DB_HOST" --username="$DB_USER" --dbname="$DB_NAME" \
+"$PG_DUMP" --host="$DB_HOST" --port="$DB_PORT" --username="$DB_USER" --dbname="$DB_NAME" \
   --format=plain --no-owner --no-privileges \
   | gzip > "$BERKAS"
 

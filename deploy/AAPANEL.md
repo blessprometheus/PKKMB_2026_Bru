@@ -1,5 +1,21 @@
 # Deploy ke VPS aaPanel — Langkah demi Langkah
 
+## ⚠️ Kondisi nyata server (diperiksa 24 September 2026) — baca ini dulu
+
+Langkah di bawah ditulis **sebelum** server bisa diperiksa. Pemeriksaan lewat SSH menemukan hal yang
+mengubah caranya; yang **benar-benar dipasang** adalah:
+
+| Hal | Rancangan di bawah | Yang terpasang & alasannya |
+|---|---|---|
+| Sifat server | server khusus | **Server produksi bersama** (uninus.ac.id, SSO, keuangan, HR, dst). Hanya milik PKKMB yang boleh disentuh |
+| PHP | 8.3 | **8.4.23** (satu-satunya yang ada). 69 test lolos di PHP ini, di server |
+| PostgreSQL | paket OS, port 5432 | **Container Docker `pkkmb26-postgres`** (postgres:17-alpine), `127.0.0.1:5433`, `scram-sha-256`. PostgreSQL aaPanel di 5432 memakai `trust` untuk semua koneksi lokal — proses mana pun dari situs lain bisa masuk sebagai superuser tanpa kata sandi. Rahasia DB: `/root/pkkmb26/db.env` (600) |
+| Domain & SSL | Let's Encrypt lewat panel | **Diproksi Cloudflare.** Memakai Cloudflare Origin Certificate `*.uninus.ac.id` yang sudah ada di `/www/server/panel/vhost/cert/uninus.ac.id/` |
+| IP pengunjung | — | `real_ip_header CF-Connecting-IP` dari rentang Cloudflare — tanpa ini rate limit per IP salah sasaran |
+| Vhost | dibuat lewat panel | Berkas manual [`nginx/pkkmb26.aapanel.conf`](nginx/pkkmb26.aapanel.conf) → `/www/server/panel/vhost/nginx/pkkmb.uninus.ac.id.conf` |
+| `disable_functions` | diubah | **Tidak diubah** — berlaku global. CLI tanpa batasan, FPM tidak butuh |
+| Backup | `pg_dump` di PATH | `PKKMB_DB_PORT=5433 PKKMB_PG_DUMP=/www/server/pgsql/bin/pg_dump` |
+
 Server: **103.74.5.229**, dikelola lewat **aaPanel**. Repo publik:
 `https://github.com/blessprometheus/PKKMB_2026_Bru`.
 
